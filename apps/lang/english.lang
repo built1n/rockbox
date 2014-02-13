@@ -6617,19 +6617,16 @@
 </phrase>
 <phrase>
   id: LANG_SHUTDOWN
-  desc: in main menu
+  desc: used in the main menu
   user: core
   <source>
-    *: none
-    soft_shutdown: "Shut down"
+    *: "Shut down"
   </source>
   <dest>
-    *: none
-    soft_shutdown: "Shut down"
+    *: "Shut down"
   </dest>
   <voice>
-    *: none
-    soft_shutdown: "Shut down"
+    *: "Shut down"
   </voice>
 </phrase>
 <phrase>

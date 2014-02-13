@@ -107,3 +107,6 @@
 
 /* Define this if a programmable hotkey is mapped */
 #define HAVE_HOTKEY
+
+/* Define this if the target is to have Shut Down in the Main Menu by default */
+#define HAVE_SHUTDOWN_IN_MAIN_MENU
