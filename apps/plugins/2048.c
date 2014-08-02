@@ -61,7 +61,7 @@
 #define RESUME_FILE PLUGIN_GAMES_DATA_DIR "/2048.save"
 #define WHAT_FONT FONT_UI
 #define SPACES (GRID_SIZE*GRID_SIZE)
-#define MIN_SPACE (BMPHEIGHT__2048_tiles*0.1) /* space between tiles */
+#define MIN_SPACE (BMPHEIGHT__2048_tiles*0.134) /* space between tiles */
 #define MAX_UNDOS 64
 #define VERT_SPACING 4
 #define WINNING_TILE 2048
