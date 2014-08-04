@@ -93,11 +93,6 @@
 #define BACKGROUND_X (BASE_X-MIN_SPACE)
 #define BACKGROUND_Y (BASE_Y-MIN_SPACE)
 
-/* uncomment to enable undos */
-/* #define ENABLE_UNDO */
-
-/* uncomment to enable the saving of backups */
-/* #define ENABLE_BACKUPS */
 /* key mappings */
 
 #define KEY_UP PLA_UP
@@ -314,153 +309,45 @@ static void right(void)
                    -1, 1, /* delta */
                    1, 0); /* lookahead */
 }
-static int biggest_tile=0;
 
-#ifndef HAVE_LCD_BITMAP
-/* draws the grid and score */
-/* old text-only version */
-static void draw(void)
+static inline int ilog2(int n)
 {
-    rb->lcd_set_background(BACKGROUND);
-    rb->lcd_clear_display();
-    /* Draw the grid */
-    /* find the biggest tile */
-    for(int x=0;x<GRID_SIZE;++x)
+    if(n==0)
+        return 1;
+    int log=0;
+    while(n>1)
     {
-        for(int y=0;y<GRID_SIZE;++y)
-            if(ctx->grid[x][y]>biggest_tile)
-                biggest_tile=ctx->grid[x][y];
+        n>>=1;
+        ++log;
     }
-    char str[32];
-    rb->snprintf(str, 31,"%d", biggest_tile);
-    int biggest_tile_width=rb->strlen(str)*max_numeral_width+MIN_SPACE;
-    char emptyCell[32];
-    emptyCell[31]=0;
-    rb->strcpy(emptyCell, str);
-    for(int i=0;i<32 && emptyCell[i];++i)
-    {
-        emptyCell[i]=' ';
-    }
-    for(int y=0;y<GRID_SIZE;++y)
-    {
-        for(int x=0;x<GRID_SIZE;++x)
-        {
-            if(ctx->grid[x][y])
-            {
-                if(ctx->grid[x][y]>biggest_tile)
-                    biggest_tile=ctx->grid[x][y];
-                rb->snprintf(str,31,"%d", ctx->grid[x][y]);
-                /* find the appropriate colors */
-                bool color_found=false;
-                unsigned int fgcolor=LCD_WHITE, bgcolor=LCD_BLACK;
-                for(unsigned int i=0;i<sizeof(tile_colors)/sizeof(struct tile_color) && !color_found;++i)
-                {
-                    if(ctx->grid[x][y]==tile_colors[i].value)
-                    {
-                        fgcolor=tile_colors[i].fg;
-                        bgcolor=tile_colors[i].bg;
-                        color_found=true;
-                    }
-                }
-                rb->lcd_set_foreground(fgcolor);
-                rb->lcd_set_background(bgcolor);
-                rb->lcd_putsxy(biggest_tile_width*x,y*max_numeral_height+max_numeral_height,str);
-            }
-            else
-            {
-                rb->lcd_set_background(LCD_RGBPACK(0xcd, 0xc0, 0xb4));
-                rb->lcd_putsxy(biggest_tile_width*x, y*max_numeral_height+max_numeral_height,emptyCell);
-            }
-        }
-    }
-    rb->lcd_set_background(TEXT_COLOR);
-    rb->lcd_set_foreground(LCD_WHITE);
-    /* Now draw the score, and the game title */
-    rb->snprintf(str, 31, "Score: %d", ctx->score);
-    int str_width, str_height;
-    rb->font_getstringsize(str, &str_width, &str_height, WHAT_FONT);
-    int score_leftmost=LCD_WIDTH-str_width-1;
-    /* Check if there is enough space to display "Score: ", otherwise, only display the score */
-    if(score_leftmost>=0)
-        rb->lcd_putsxy(score_leftmost,0,str);
-    else
-        rb->lcd_putsxy(score_leftmost,0,str+rb->strlen("Score: "));
-    /* Reuse the same string for the title */
-    rb->lcd_set_foreground(TEXT_COLOR);
-    rb->lcd_set_background(BACKGROUND);
-    rb->snprintf(str, 31, "%d", WINNING_TILE);
-    rb->font_getstringsize(str, &str_width, &str_height, WHAT_FONT);
-    if(str_width<score_leftmost)
-    {
-        rb->lcd_putsxy(0,0,str);
-    }
-    rb->lcd_update();
+    return log+1;
 }
-#else
-/* new drawing function */
-
 static void draw(void)
 {
-    /* use this table to find the coordinates of the tiles in the bitmap */
-    struct int_pair {
-        int a;
-        int b;
-    };
-    /* using this table for offsets in the bitmap is the fastest option */
-    /* on targets with EXTREMELY small memory, this could be calculated
-       with offset=BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*ilog2(ctx->grid[x][y]) */
-    const struct int_pair image_table[] = {
-        { 0, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles },
-        { 2, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*2 },
-        { 4, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*3 },
-        { 8, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*4 },
-        { 16, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*5 },
-        { 32, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*6 },
-        { 64, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*7 },
-        { 128, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*8 },
-        { 256, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*9 },
-        { 512, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*10 },
-        { 1024, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*11 },
-        { 2048, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*12 },
-        { 4096, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*13 },
-        { 8192, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*14 },
-        { 16384, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*15 },
-        { 32768, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*16 },
-        { 65536, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*17 },
-        { 131072, BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*18 }
-    };
 #ifdef HAVE_LCD_COLOR
     rb->lcd_set_background(BACKGROUND);
 #endif
     rb->lcd_clear_display();
+
+    /* draw the background */
+
     rb->lcd_bitmap(_2048_background, BACKGROUND_X, BACKGROUND_Y, BMPWIDTH__2048_background, BMPWIDTH__2048_background);
 
     /*
       grey_gray_bitmap(_2048_background, BACKGROUND_X, BACKGROUND_Y, BMPWIDTH__2048_background, BMPHEIGHT__2048_background);
     */
 
+    /* draw the grid */
+
     for(int y=0;y<GRID_SIZE;++y)
     {
         for(int x=0;x<GRID_SIZE;++x)
         {
-            for(unsigned int i=0;i<sizeof(image_table)/sizeof(struct int_pair);++i)
-            {
-                if(image_table[i].a==ctx->grid[x][y])
-                {
-
-#ifndef HAVE_LCD_COLOR
-                    /* on B+W screens, tiles 128-2048 have too little contrast */
-                    /* to correct this, negate the bitmap */
-#endif
-
-                    rb->lcd_bitmap_part(_2048_tiles, /* source */
-                                        image_table[i].b, 0, /* source upper left corner */
-                                        STRIDE(SCREEN_MAIN, BMPWIDTH__2048_tiles, BMPHEIGHT__2048_tiles), /* stride */
-                                        (BMPHEIGHT__2048_tiles+MIN_SPACE)*x+BASE_X, (BMPHEIGHT__2048_tiles+MIN_SPACE)*y+BASE_Y, /* dest upper-left corner */
-                                        BMPHEIGHT__2048_tiles, BMPHEIGHT__2048_tiles); /* size of the cut section */
-                    break;
-                }
-            }
+            rb->lcd_bitmap_part(_2048_tiles, /* source */
+                                BMPWIDTH__2048_tiles-BMPHEIGHT__2048_tiles*ilog2(ctx->grid[x][y]), 0, /* source upper left corner */
+                                STRIDE(SCREEN_MAIN, BMPWIDTH__2048_tiles, BMPHEIGHT__2048_tiles), /* stride */
+                                (BMPHEIGHT__2048_tiles+MIN_SPACE)*x+BASE_X, (BMPHEIGHT__2048_tiles+MIN_SPACE)*y+BASE_Y, /* dest upper-left corner */
+                                BMPHEIGHT__2048_tiles, BMPHEIGHT__2048_tiles); /* size of the cut section */
         }
     }
     /* draw the title */
@@ -578,7 +465,7 @@ draw_best:
     /* revert the font back */
     rb->lcd_setfont(WHAT_FONT);
 }
-#endif /* else */
+
 /* place a 2 or 4 in a random empty space */
 static void place_random(void)
 {
@@ -692,32 +579,6 @@ static void load_hs(void)
         memset(highscores, 0, sizeof(struct highscore)*NUM_SCORES);
 }
 
-/* save the current grid on the undo stack */
-static void undo_push(void)
-{
-    if(undo->top==MAX_UNDOS)
-    {
-        memmove(undo->undo_stack, &(undo->undo_stack[1]), (MAX_UNDOS-1)*sizeof(struct undo_data_node));
-        --undo->top;
-    }
-    undo->undo_stack[undo->top].score=ctx->score;
-    memcpy(undo->undo_stack[undo->top].grid, ctx->grid, sizeof(int)*SPACES);
-    ++undo->top;
-}
-
-#ifdef ENABLE_UNDOS /* stop warnings */
-/* undo the user's last move */
-static void pop_undo(void)
-{
-    if(undo->top>0)
-    {
-        --undo->top;
-        memcpy(ctx->grid, undo->undo_stack[undo->top].grid, sizeof(int)*SPACES);
-        ctx->score=undo->undo_stack[undo->top].score;
-    }
-}
-#endif
-
 /* initialize the data structures */
 static void init_game(bool newgame)
 {
@@ -747,7 +608,6 @@ static void init_game(bool newgame)
         if(width>max_numeral_width)
             max_numeral_width=width;
     }
-    biggest_tile=0;
     /* Now get the height of the font */
     rb->font_getstringsize("0123456789", NULL, &max_numeral_height,WHAT_FONT);
     max_numeral_height+=VERT_SPACING;
@@ -758,26 +618,6 @@ static void init_game(bool newgame)
     backlight_ignore_timeout();
     rb->lcd_clear_display();
     draw();
-}
-
-/* save a backup copy of the game */
-static void save_backup(void)
-{
-#ifdef ENABLE_BACKUPS
-    int fd=rb->open(BACKUP_FILE,O_WRONLY|O_CREAT, 0666);
-    if(fd<0)
-    {
-        rb->splash(2*HZ, "Saving failed.");
-        return;
-    }
-    ctx->cksum=0;
-    for(int x=0;x<GRID_SIZE;++x)
-        for(int y=0;y<GRID_SIZE;++y)
-            ctx->cksum+=ctx->grid[x][y];
-    ctx->cksum^=ctx->score;
-    rb->write(fd, ctx,sizeof(struct game_ctx_t));
-    rb->close(fd);
-#endif
 }
 
 /* save the current game state */
@@ -795,8 +635,6 @@ static void save_game(void)
             ctx->cksum+=ctx->grid[x][y];
     ctx->cksum^=ctx->score;
     rb->write(fd, ctx,sizeof(struct game_ctx_t));
-    /* save the undo data, even if undos are not enabled to keep save data compatible */
-    rb->write(fd, undo, sizeof(struct undo_data_t));
     rb->close(fd);
     rb->lcd_update();
 }
@@ -819,12 +657,9 @@ static bool load_game(void)
     calc^=ctx->score;
     if(numread==sizeof(struct game_ctx_t) && calc==ctx->cksum)
         ++success;
-    numread=rb->read(fd, undo, sizeof(struct undo_data_t));
-    if(numread==sizeof(struct undo_data_t))
-        ++success;
     rb->close(fd);
     rb->remove(RESUME_FILE);
-    return (success==2);
+    return (success==1);
 }
 
 /* update the highscores with ctx->score */
@@ -933,7 +768,7 @@ static enum plugin_status do_game(bool newgame)
 {
     init_game(newgame);
     rb_atexit(&exit_handler);
-    int made_move=0, move_was_undo=0;
+    int made_move=0;
     while(1)
     {
 #ifdef HAVE_ADJUSTABLE_CPU_FREQ
@@ -942,7 +777,6 @@ static enum plugin_status do_game(bool newgame)
         /* Wait for a button press */
         int button=pluginlib_getaction(-1, plugin_contexts, ARRAYLEN(plugin_contexts));
         made_move=0;
-        move_was_undo=0;
         memset(&merged_grid,0,SPACES*sizeof(bool));
         memcpy(&old_grid, &ctx->grid, sizeof(int)*SPACES);
         int grid_before_anim_step[GRID_SIZE][GRID_SIZE];
@@ -1023,28 +857,18 @@ static enum plugin_status do_game(bool newgame)
                 return PLUGIN_ERROR;
             }
             break;
-#ifdef ENABLE_UNDO
-        case KEY_UNDO: /* undo */
-            pop_undo();
-            made_move=1;
-            move_was_undo=1;
-            break;
-#endif
         default:
         {
-            exit_on_usb(button);
+            exit_on_usb(button); /* handles poweroff and USB events */
             break;
         }
         }
         if(made_move)
         {
-            if(!rb->battery_level_safe())
-                save_backup();
             /* Check if we actually moved, then add random */
-            if(memcmp(&old_grid, ctx->grid, sizeof(int)*SPACES) && !move_was_undo)
+            if(memcmp(&old_grid, ctx->grid, sizeof(int)*SPACES))
             {
                 place_random();
-                undo_push();
             }
             memcpy(&old_grid, ctx->grid, sizeof(int)*SPACES);
             if(check_gameover())
@@ -1060,7 +884,7 @@ static enum plugin_status do_game(bool newgame)
 
 /* decide if this_item should be shown in the main menu */
 /* used to hide resume option when there is no save */
-static int mainmenu_shouldshow(int action, const struct menu_item_ex *this_item)
+static int mainmenu_cb(int action, const struct menu_item_ex *this_item)
 {
     int idx=((intptr_t)this_item);
     if(action==ACTION_REQUEST_MENUITEM && !loaded && (idx==0 || idx==5))
@@ -1073,7 +897,7 @@ static enum plugin_status do_2048_menu(void)
 {
     int sel=0;
     loaded=load_game();
-    MENUITEM_STRINGLIST(menu,"2048 Menu", mainmenu_shouldshow, "Resume Game", "Start New Game","High Scores","Playback Control", "Help", "Quit without Saving", "Quit");
+    MENUITEM_STRINGLIST(menu,"2048 Menu", mainmenu_cb, "Resume Game", "Start New Game","High Scores","Playback Control", "Help", "Quit without Saving", "Quit");
     bool quit=false;
     while(!quit)
     {
