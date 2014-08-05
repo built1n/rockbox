@@ -24,20 +24,16 @@
  *
  ***************************************************************************/
 
+/* TODO
+ * Sounds!
+ * Better animations!
+ */
+
 /* includes */
 
 #include <plugin.h>
 
 #include "lib/display_text.h"
-
-#if LCD_DEPTH<4
-
-/* pesky english spellings! */
-/* it's GRAY, not GREY! */
-#include "lib/grey.h"
-/* who cares... */
-
-#endif
 
 #include "lib/helper.h"
 #include "lib/highscore.h"
@@ -53,7 +49,6 @@
 /* defines */
 
 #define ANIM_SLEEPTIME 5
-#define BACKUP_FILE PLUGIN_GAMES_DATA_DIR "/2048.backup" /* where to save when the battery dies */
 #define GRID_SIZE 4
 #define HISCORES_FILE PLUGIN_GAMES_DATA_DIR "/2048.score"
 #define NUM_SCORES 5
@@ -110,19 +105,6 @@
 
 static const struct button_mapping *plugin_contexts[] = { pla_main_ctx };
 
-/* What is needed to save/load a game */
-struct undo_data_node {
-    /* basically a simplified version of game_ctx_t */
-    int grid[GRID_SIZE][GRID_SIZE];
-    int score;
-};
-
-/* undo data */
-struct undo_data_t {
-    struct undo_data_node undo_stack[MAX_UNDOS];
-    int top;
-};
-
 /* game data */
 struct game_ctx_t {
     int grid[GRID_SIZE][GRID_SIZE];
@@ -134,47 +116,18 @@ struct game_ctx_t {
 static struct game_ctx_t ctx_data;
 /* use a pointer to make save/load easier */
 static struct game_ctx_t *ctx=&ctx_data;
-static struct undo_data_t undo_data;
-static struct undo_data_t *undo=&undo_data;
 
 /* temporary data */
 static bool merged_grid[GRID_SIZE][GRID_SIZE];
 static int old_grid[GRID_SIZE][GRID_SIZE];
-static int max_numeral_width=-1, max_numeral_height=-1;
+static int max_numeral_height=-1;
 static bool loaded=false;
-static int winning_tile_width;
 
 /* first init_game will set this, when it is exceeded, it will be updated in the slide functions */
 static int best_score;
 
 static bool abnormal_exit=true;
-/* TODO
- * Sounds!
- * Better animations!
- */
 static struct highscore highscores[NUM_SCORES];
-
-#ifdef HAVE_LCD_COLORS
-/* map tile values to colors */
-struct tile_color {
-    int value;
-    unsigned int fg;
-    unsigned int bg;
-};
-struct tile_color tile_colors[11] = {
-    {2, LCD_RGBPACK(0x77, 0x6e, 0x65), LCD_RGBPACK(0xee, 0xe4, 0xda)},
-    {4, LCD_RGBPACK(0x77, 0x6e, 0x65), LCD_RGBPACK(0xed, 0xe0, 0xc8)},
-    {8, LCD_RGBPACK(0xf9, 0xf6, 0xf2), LCD_RGBPACK(0xf2, 0xb1, 0x79)},
-    {16, LCD_RGBPACK(0xf9, 0xf6, 0xf2), LCD_RGBPACK(0xf5, 0x95, 0x63)},
-    {32, LCD_RGBPACK(0xf9, 0xf6, 0xf2), LCD_RGBPACK(0xf6, 0x7c, 0x5f)},
-    {64, LCD_RGBPACK(0xf9, 0xf6, 0xf2), LCD_RGBPACK(0xf6, 0x5e, 0x3b)},
-    {128, LCD_RGBPACK(0xf9, 0xf6, 0xf2), LCD_RGBPACK(0xed, 0xcf, 0x72)},
-    {256, LCD_RGBPACK(0xf9, 0xf6, 0xf2), LCD_RGBPACK(0xed, 0xcc, 0x61)},
-    {512, LCD_RGBPACK(0xf9, 0xf6, 0xf2), LCD_RGBPACK(0xed, 0xc8, 0x50)},
-    {1024, LCD_RGBPACK(0xf9, 0xf6, 0xf2), LCD_RGBPACK(0xed, 0xc5, 0x3f)},
-    {2048, LCD_RGBPACK(0xf9, 0xf6, 0xf2), LCD_RGBPACK(0xed, 0xc2, 0x2e)}
-};
-#endif
 
 /* returns a random int between min and max */
 static inline int rand_range(int min, int max)
@@ -309,6 +262,8 @@ static void right(void)
                    -1, 1, /* delta */
                    1, 0); /* lookahead */
 }
+
+/* slightly modified version of base 2 log, returns 1 when given zero, and log2(n)+1 for anything else */
 
 static inline int ilog2(int n)
 {
@@ -511,7 +466,7 @@ static bool check_gameover(void)
                 draw();
                 ctx->already_won=true;
                 rb->splash(HZ*2,"You win!");
-                const struct text_message prompt={(const char*[]){"Keep playing?"}, 1};
+                const struct text_message prompt={(const char*[]){"Keep going?"}, 1};
                 enum yesno_res keepgoing=rb->gui_syncyesno_run(&prompt, NULL, NULL);
                 if(keepgoing==YESNO_NO)
                     return true;
@@ -563,7 +518,7 @@ static bool check_gameover(void)
         /* no more legal moves */
         ctx->score=oldscore;
         draw(); /* Shame the player :) */
-        rb->splash(HZ*2, "Game Over!");
+        rb->splash(HZ*2, "Game over!");
         return true;
     }
     return false;
@@ -593,28 +548,14 @@ static void init_game(bool newgame)
         }
         ctx->score=0;
         ctx->already_won=false;
-        memset(undo, 0, sizeof(struct undo_data_t));
     }
     /* using the menu resets the font */
     /* set it again here */
     rb->lcd_setfont(WHAT_FONT);
-    /* Now calculate font sizes, etc */
-    max_numeral_width=-1;
-    max_numeral_height=-1;
-    /* Find the width of the widest character so the drawing can be nicer */
-    for(char c='0';c<='9';++c)
-    {
-        int width=rb->font_get_width(rb->font_get(WHAT_FONT), c);
-        if(width>max_numeral_width)
-            max_numeral_width=width;
-    }
+    /* Now calculate font sizes */
     /* Now get the height of the font */
     rb->font_getstringsize("0123456789", NULL, &max_numeral_height,WHAT_FONT);
     max_numeral_height+=VERT_SPACING;
-    /* Find the size of the winning tile, used to draw the title */
-    char buf[32];
-    rb->snprintf(buf, 31, "%d", WINNING_TILE);
-    rb->font_getstringsize(buf, &winning_tile_width, NULL, WHAT_FONT);
     backlight_ignore_timeout();
     rb->lcd_clear_display();
     draw();
@@ -960,9 +901,11 @@ static enum plugin_status do_2048_menu(void)
 enum plugin_status plugin_start(const void* param)
 {
     (void)param;
-    rb->srand(*(rb->current_tick));
+    rb->srand(*rb->current_tick);
     load_hs();
     rb->lcd_setfont(WHAT_FONT);
+
+    /* now start the game menu */
     enum plugin_status ret=do_2048_menu();
     highscore_save(HISCORES_FILE,highscores,NUM_SCORES);
     cleanup();
