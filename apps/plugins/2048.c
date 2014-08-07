@@ -154,8 +154,10 @@ static inline int rand_2_or_4(void)
 /* display the help text */
 static bool do_help(void)
 {
+#ifdef HAVE_LCD_COLOR
     rb->lcd_set_foreground(LCD_WHITE);
     rb->lcd_set_background(LCD_BLACK);
+#endif
     rb->lcd_setfont(FONT_UI);
     char* help_text[]= {"2048", "", "Aim",
                         "", "Join", "the", "numbers", "to", "get", "to", "the", "2048", "tile!", "", "",

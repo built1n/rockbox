@@ -16,7 +16,7 @@ _2048_background.121x121x24.bmp
 _2048_tiles.22x22x24.bmp
 _2048_background.103x103x24.bmp
 #else
-#warning "FIXME: Screen too small for 2048"
+/* default to smallest bitmaps */
 _2048_tiles.12x12x24.bmp
 _2048_background.56x56x24.bmp
 #endif
