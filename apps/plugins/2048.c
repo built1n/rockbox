@@ -518,7 +518,7 @@ static bool check_gameover(void)
         /* no more legal moves */
         ctx->score=oldscore;
         draw(); /* Shame the player :) */
-        rb->splash(HZ*2, "Game over!");
+        rb->splash(HZ*2, "Game Over!");
         return true;
     }
     return false;
