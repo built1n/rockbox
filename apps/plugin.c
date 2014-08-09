@@ -120,7 +120,7 @@ void piezo_play(unsigned int usecs, unsigned int freq, bool wait)
 #if defined(IPOD_6G) || defined(IPOD_NANO2G)
     if(freq)
     {
-        piezo_start(50000/freq, freq*usecs/1000000);
+        piezo_start(50000/freq, freq*(usecs/1000000));
     }
 #else
     if(freq)
