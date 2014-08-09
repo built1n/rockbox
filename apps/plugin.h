@@ -981,9 +981,9 @@ struct plugin_api {
 #ifdef HAVE_HARDWARE_CLICK
     /* piezo */
 
-    void (*piezo_click)(bool force);
-    void (*piezo_beep)(bool force);
-    void (*piezo_play)(unsigned int usecs, unsigned int freq, bool force);
+    void (*piezo_click)(bool wait);
+    void (*piezo_beep)(bool wait);
+    void (*piezo_play)(unsigned int usecs, unsigned int freq, bool wait);
 #endif
 
 };

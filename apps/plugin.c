@@ -100,27 +100,26 @@ static int app_ftruncate(int fd, off_t length)
 #endif
 
 #ifdef HAVE_HARDWARE_CLICK
-void piezo_click(bool force)
+void piezo_click(bool wait)
 {
-    piezo_button_beep(false, force);
-    while(piezo_busy())
-        yield();
+    piezo_button_beep(false, true);
+    if(wait)
+        while(piezo_busy())
+            yield();
 }
 
-void piezo_beep(bool force)
+void piezo_beep(bool wait)
 {
     piezo_button_beep(true, force);
-    while(piezo_busy())
-        yield();
+    if(wait)
+        while(piezo_busy())
+            yield();
 }
-void piezo_play(unsigned int usecs, unsigned int freq, bool force)
+void piezo_play(unsigned int usecs, unsigned int freq, bool wait)
 {
 #if defined(IPOD_6G) || defined(IPOD_NANO2G)
     if(freq)
     {
-        if(force)
-            while(piezo_busy())
-                yield();
         piezo_start(50000/freq, freq*usecs/1000000);
     }
 #else
@@ -129,8 +128,9 @@ void piezo_play(unsigned int usecs, unsigned int freq, bool force)
         piezo_play_for_usec(piezo_hz(freq), 0x80, usecs);
     }
 #endif
-    while(piezo_busy())
-        yield();
+    if(wait)
+        while(piezo_busy())
+            yield();
 }
 #endif /* HAVE_HARDWARE_CLICK */
 
