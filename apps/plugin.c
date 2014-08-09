@@ -120,7 +120,20 @@ void piezo_play(unsigned int usecs, unsigned int freq, bool wait)
 #if defined(IPOD_6G) || defined(IPOD_NANO2G)
     if(freq)
     {
-        piezo_start(50000/freq, freq*(usecs/1000000));
+        /* integer overflow? */
+        unsigned long long periods=freq*(usecs/1000000);
+        unsigned short cycles=50000/freq;
+        if(periods>65535)
+        {
+            while(periods>65535)
+            {
+                piezo_start(cycles, 65535);
+                while(piezo_busy())
+                    yield();
+                periods-=65535;
+            }
+        }
+        piezo_start(cycles, periods);
     }
 #else
     if(freq)

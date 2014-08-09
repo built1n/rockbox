@@ -62,14 +62,14 @@ enum plugin_status plugin_start(const void* param)
             {
                 unsigned int freq=(buf[1]<<24)|(buf[2]<<16)|(buf[3]<<8)|buf[4];
                 unsigned int dur= (buf[5]<<24)|(buf[6]<<16)|(buf[7]<<8)|buf[8];
-                rb->splashf(0, "Playing %u Hz tone for %u microseconds", freq, dur);c
+                rb->splashf(0, "Playing %u Hz tone for %u microseconds", freq, dur);
                 rb->piezo_play(dur, freq, true);
                 break;
             }
             case 0:
             {
                 unsigned int dur=(buf[1]<<24)|(buf[2]<<16)|(buf[3]<<8)|buf[4];
-                rb->splashf(0, "Sleeping %u microseconds");
+                rb->splashf(0, "Sleeping %u microseconds", dur);
                 rb->sleep(dur*10000);
                 break;
             }
