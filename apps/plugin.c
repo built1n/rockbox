@@ -110,7 +110,7 @@ void piezo_click(bool wait)
 
 void piezo_beep(bool wait)
 {
-    piezo_button_beep(true, force);
+    piezo_button_beep(true, true);
     if(wait)
         while(piezo_busy())
             yield();
