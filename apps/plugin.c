@@ -121,8 +121,8 @@ void piezo_play(unsigned int usecs, unsigned int freq, bool wait)
     if(freq)
     {
         /* integer overflow? */
-        unsigned long long periods=freq*(usecs/1000000);
-        unsigned short cycles=50000/freq;
+        unsigned long long periods=freq*(usecs/1000000.0);
+        unsigned short cycles=50000.0/freq;
         if(periods>65535)
         {
             while(periods>65535)

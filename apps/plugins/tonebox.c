@@ -70,7 +70,7 @@ enum plugin_status plugin_start(const void* param)
             {
                 unsigned int dur=(buf[1]<<24)|(buf[2]<<16)|(buf[3]<<8)|buf[4];
                 rb->splashf(0, "Sleeping %u microseconds", dur);
-                rb->sleep(dur*10000);
+                rb->sleep(dur/10000.0);
                 break;
             }
             default:
