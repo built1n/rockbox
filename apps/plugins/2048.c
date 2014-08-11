@@ -48,7 +48,7 @@
 
 /* defines */
 
-#define ANIM_SLEEPTIME 5
+#define ANIM_SLEEPTIME (HZ/20)
 #define GRID_SIZE 4
 #define HISCORES_FILE PLUGIN_GAMES_DATA_DIR "/2048.score"
 #define NUM_SCORES 5
