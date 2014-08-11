@@ -1,6 +1,7 @@
 #include "plugin.h"
 #include "lib/pluginlib_actions.h"
-const struct button_mapping pla_context[]={pla_main_ctx};
+#include "lib/pluginlib_exit.h"
+const struct button_mapping *pla_context[]={pla_main_ctx};
 enum plugin_status plugin_start(const void* param)
 {
     (void)param;
@@ -16,7 +17,7 @@ enum plugin_status plugin_start(const void* param)
     int freq=200;
     for(;;)
     {
-        rb->piezo_play(0xFFFFFFFF, freq, false);
+        rb->piezo_play(1000000, freq, false);
         char buf[32];
         rb->snprintf(buf, 32, "%d", freq);
         rb->lcd_putsxy(0,0,buf);
