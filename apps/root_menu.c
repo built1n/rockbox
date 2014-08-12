@@ -482,7 +482,12 @@ MENUITEM_RETURNVALUE(playlists, ID2P(LANG_CATALOG), GO_TO_PLAYLISTS_SCREEN,
 MENUITEM_RETURNVALUE(system_menu_, ID2P(LANG_SYSTEM), GO_TO_SYSTEM_SCREEN,
                      NULL, Icon_System_menu);
 
-#if CONFIG_KEYPAD == PLAYER_PAD
+#ifdef HAVE_SHUTDOWN_IN_MAIN_MENU
+#define SHUTDOWN_PREFIX ""
+#else
+#define SHUTDOWN_PREFIX "!"
+#endif
+
 static int do_shutdown(void)
 {
 #if CONFIG_CHARGING
@@ -495,12 +500,13 @@ static int do_shutdown(void)
 }
 MENUITEM_FUNCTION(do_shutdown_item, 0, ID2P(LANG_SHUTDOWN),
                   do_shutdown, NULL, NULL, Icon_NOICON);
-#endif
 
 struct menu_item_ex root_menu_;
 static struct menu_callback_with_desc root_menu_desc = {
         item_callback, ID2P(LANG_ROCKBOX_TITLE), Icon_Rockbox };
 
+/* If an item starts with '!' it wont be added to the menu
+   by default but remains accessible to the target*/
 static struct menu_table menu_table[] = {
     /* Order here represents the default ordering */
     { "bookmarks", &bookmarks },
@@ -519,10 +525,8 @@ static struct menu_table menu_table[] = {
     { "playlists", &playlists },
     { "plugins", &rocks_browser },
     { "system_menu", &system_menu_ },
-#if CONFIG_KEYPAD == PLAYER_PAD
-    { "shutdown", &do_shutdown_item },
-#endif
     { "shortcuts", &shortcut_menu },
+    { SHUTDOWN_PREFIX "shutdown", &do_shutdown_item },
 };
 #define MAX_MENU_ITEMS (sizeof(menu_table) / sizeof(struct menu_table))
 static struct menu_item_ex *root_menu__[MAX_MENU_ITEMS];
@@ -563,7 +567,10 @@ void root_menu_load_from_cfg(void* setting, char *value)
             *end = '\0';
         for (i=0; i<MAX_MENU_ITEMS; i++)
         {
-            if (*start && !strcmp(start, menu_table[i].string))
+            char *string = menu_table[i].string;
+            if (string[0] == '!')
+                string++;
+            if (*start && !strcmp(start, string))
             {
                 root_menu__[menu_item_count++] = (struct menu_item_ex *)menu_table[i].item;
                 if (menu_table[i].item == &menu_)
@@ -588,7 +595,10 @@ char* root_menu_write_to_cfg(void* setting, char*buf, int buf_len)
         {
             if (menu_table[j].item == root_menu__[i])
             {
-                written = snprintf(buf, buf_len, "%s, ", menu_table[j].string);
+                char *out = menu_table[j].string;
+                if (out[0] == '!')
+                    out++;
+                written = snprintf(buf, buf_len, "%s,", out);
                 buf_len -= written;
                 buf += written;
                 break;
@@ -600,7 +610,7 @@ char* root_menu_write_to_cfg(void* setting, char*buf, int buf_len)
 
 void root_menu_set_default(void* setting, void* defaultval)
 {
-    unsigned i;
+    unsigned i, count = 0;
     (void)defaultval;
 
     root_menu_.flags = MENU_HAS_DESC | MT_MENU;
@@ -609,9 +619,13 @@ void root_menu_set_default(void* setting, void* defaultval)
 
     for (i=0; i<MAX_MENU_ITEMS; i++)
     {
-        root_menu__[i] = (struct menu_item_ex *)menu_table[i].item;
+        if (menu_table[i].string[0] != '!')
+        {
+            root_menu__[count] = (struct menu_item_ex *)menu_table[i].item;
+            count++;
+        }
     }
-    root_menu_.flags |= MENU_ITEM_COUNT(MAX_MENU_ITEMS);
+    root_menu_.flags |= MENU_ITEM_COUNT(count);
     *(bool*)setting = false;
 }
 
