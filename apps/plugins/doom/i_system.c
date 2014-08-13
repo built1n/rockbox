@@ -123,6 +123,9 @@ void I_Quit (void)
    I_ShutdownSound();
    I_ShutdownMusic();
    I_ShutdownGraphics();
+#if defined(HAVE_LCD_COLOR) && !defined(SIMULATOR) && !defined(RB_PROFILE) && !defined(IPOD_6G)
+   rb->timer_unregister();
+#endif
    doomexit=1;
 }
 
