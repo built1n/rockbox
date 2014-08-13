@@ -81,7 +81,7 @@ volatile unsigned int doomtimer=0;
 
 void doomtime(void)
 {
-    ++doomtimer;
+    doomtimer++;
 }
 #endif
 
