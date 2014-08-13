@@ -69,27 +69,33 @@
 // returns time in 1/70th second tics
 //
 
-/* NOTE: 
+/* NOTE:
 
    The user timer is used to generate a 70Hz tick for Doom.  But it
    is unavailable for the greyscale targets (it's used by the greyscale
    lib) and is not implemented in the simulator - so we have to
    approximate it using current_tick.
 */
+#if defined(HAVE_LCD_COLOR) && !defined(SIMULATOR) && !defined(RB_PROFILE) && !defined(IPOD_6G)
+volatile unsigned int doomtimer=0;
 
-int  I_GetTime (void)
+void doomtime(void)
 {
-/*
-#if defined(HAVE_LCD_COLOR) && !defined(SIMULATOR) && !defined(RB_PROFILE)
+    ++doomtimer;
+}
+#endif
+
+int I_GetTime (void)
+{
+#if defined(HAVE_LCD_COLOR) && !defined(SIMULATOR) && !defined(RB_PROFILE) && !defined(IPOD_6G)
    return doomtimer;
 #else
-*/
 #if HZ==100
    return ((7*(*rb->current_tick))/20);
 #else
    #error FIX - I assumed HZ was 100
 #endif
-/*#endif*/
+#endif
 }
 
 //
@@ -102,7 +108,10 @@ int  I_GetTime (void)
 // The game is much slower now (in terms of game speed).
 void I_Init (void)
 {
-   I_InitSound();
+#if defined(HAVE_LCD_COLOR) && !defined(SIMULATOR) && !defined(RB_PROFILE) && !defined(IPOD_6G)
+    rb->timer_register(1, NULL, TIMER_FREQ/TICRATE, doomtime IF_COP(, CPU));
+#endif
+    I_InitSound();
 }
 
 //
