@@ -76,14 +76,6 @@
    lib) and is not implemented in the simulator - so we have to
    approximate it using current_tick.
 */
-#if defined(HAVE_LCD_COLOR) && !defined(SIMULATOR) && !defined(RB_PROFILE)
-volatile unsigned int doomtimer=0;
-
-void doomtime(void)
-{
-   doomtimer++;
-}
-#endif
 
 int  I_GetTime (void)
 {
@@ -110,9 +102,6 @@ int  I_GetTime (void)
 // The game is much slower now (in terms of game speed).
 void I_Init (void)
 {
-#if defined(HAVE_LCD_COLOR) && !defined(SIMULATOR) && !defined(RB_PROFILE)
-   rb->timer_register(1, NULL, TIMER_FREQ/TICRATE, doomtime IF_COP(, CPU));
-#endif
    I_InitSound();
 }
 
@@ -125,9 +114,6 @@ void I_Quit (void)
    I_ShutdownSound();
    I_ShutdownMusic();
    I_ShutdownGraphics();
-#if defined(HAVE_LCD_COLOR) && !defined(SIMULATOR) && !defined(RB_PROFILE)
-   rb->timer_unregister();
-#endif
    doomexit=1;
 }
 
