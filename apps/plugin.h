@@ -978,7 +978,7 @@ struct plugin_api {
        the API gets incompatible */
     void (*plugin_release_audio_buffer)(void);
 
-#ifdef HAVE_HARDWARE_CLICK
+#if defined(HAVE_HARDWARE_CLICK) && !defined(SIMULATOR)
     /* piezo */
 
     void (*piezo_click)(bool wait);

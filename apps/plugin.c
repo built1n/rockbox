@@ -99,7 +99,7 @@ static int app_ftruncate(int fd, off_t length)
 }
 #endif
 
-#ifdef HAVE_HARDWARE_CLICK
+#if defined(HAVE_HARDWARE_CLICK) && !defined(SIMULATOR)
 void piezo_click(bool wait)
 {
     piezo_button_beep(false, true);
@@ -857,7 +857,10 @@ static const struct plugin_api rockbox_api = {
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
     plugin_release_audio_buffer, /* defined in plugin.c */
-#ifdef HAVE_HARDWARE_CLICK
+
+    /* piezo */
+#if defined(HAVE_HARDWARE_CLICK) && !defined(SIMULATOR)
+    /* all these are defined in plugin.c */
     piezo_click,
     piezo_beep,
     piezo_play

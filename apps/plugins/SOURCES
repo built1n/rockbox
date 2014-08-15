@@ -263,11 +263,11 @@ test_sampr.c
 test_touchscreen.c
 #endif
 test_viewports.c
-#ifdef HAVE_HARDWARE_CLICK
+#if defined(HAVE_HARDWARE_CLICK) && !defined(SIMULATOR)
 test_piezo.c
 #endif
 #endif /* HAVE_TEST_PLUGINS */
 
-#ifdef HAVE_HARDWARE_CLICK
+#if defined(HAVE_HARDWARE_CLICK) && !defined(SIMULATOR)
 tonebox.c
 #endif
