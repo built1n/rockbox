@@ -81,6 +81,7 @@ enum plugin_status plugin_start(const void* param)
                 return PLUGIN_ERROR;
                 break;
             }
+            rb->yield();
         } while(ret==9);
         rb->close(fd);
     }
