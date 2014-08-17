@@ -977,7 +977,6 @@ struct plugin_api {
 
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
-    void (*plugin_release_audio_buffer)(void);
 
 #if defined(HAVE_HARDWARE_CLICK) && !defined(SIMULATOR)
     /* piezo */
