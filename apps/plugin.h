@@ -165,7 +165,7 @@ void* plugin_get_buffer(size_t *buffer_size);
 /* update this to latest version if a change to the api struct breaks
    backwards compatibility (and please take the opportunity to sort in any
    new function which are "waiting" at the end of the function table) */
-#define PLUGIN_MIN_API_VERSION 230
+#define PLUGIN_MIN_API_VERSION 231
 
 /* plugin return codes */
 /* internal returns start at 0x100 to make exit(1..255) work */
@@ -370,7 +370,7 @@ struct plugin_api {
                               int width, int height);
 #endif
     void (*viewport_set_defaults)(struct viewport *vp,
-                                  const enum screen_type screen);
+                                  const enum screen_type screen);                                  
 #ifdef HAVE_LCD_BITMAP
     void (*viewportmanager_theme_enable)(enum screen_type screen, bool enable,
                                          struct viewport *viewport);
@@ -843,6 +843,7 @@ struct plugin_api {
 #endif
     void* (*plugin_get_buffer)(size_t *buffer_size);
     void* (*plugin_get_audio_buffer)(size_t *buffer_size);
+    void (*plugin_release_audio_buffer)(void);
     void (*plugin_tsr)(bool (*exit_callback)(bool reenter));
     char* (*plugin_get_current_filename)(void);
 #if defined(DEBUG) || defined(SIMULATOR)
