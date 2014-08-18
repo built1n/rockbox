@@ -857,7 +857,6 @@ static const struct plugin_api rockbox_api = {
 
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
-    plugin_release_audio_buffer, /* defined in plugin.c */
 
     /* piezo */
 #if defined(HAVE_HARDWARE_CLICK) && !defined(SIMULATOR)
