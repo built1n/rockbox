@@ -183,7 +183,8 @@ static bool do_help(void)
 static inline void slide_internal(int startx, int starty,
                                   int stopx, int stopy,
                                   int dx, int dy,
-                                  int lookx, int looky)
+                                  int lookx, int looky,
+                                  bool update_best)
 {
     int best_score_before=best_score;
     for(int y=starty;y!=stopy;y+=dy)
@@ -205,7 +206,7 @@ static inline void slide_internal(int startx, int starty,
             }
         }
     }
-    if(ctx->score>best_score_before)
+    if(ctx->score>best_score_before && update_best)
         best_score=ctx->score;
 }
 
@@ -218,12 +219,13 @@ static inline void slide_internal(int startx, int starty,
    3 ^ ^ ^ ^
    0 1 2 3
 */
-static void up(void)
+static void up(bool update_best)
 {
     slide_internal(0, 1,  /* start values */
                    GRID_SIZE, GRID_SIZE, /* stop values */
                    1, 1, /* delta values */
-                   0, -1); /* lookahead values */
+                   0, -1, /* lookahead values */
+                   update_best);
 }
 /* Down
    0 v v v v
@@ -232,12 +234,13 @@ static void up(void)
    3
    0 1 2 3
 */
-static void down(void)
+static void down(bool update_best)
 {
     slide_internal(0, GRID_SIZE-2,
                    GRID_SIZE, -1,
                    1, -1,
-                   0, 1);
+                   0, 1,
+                   update_best);
 }
 /* Left
    0   < < <
@@ -246,12 +249,13 @@ static void down(void)
    3   < < <
    0 1 2 3
 */
-static void left(void)
+static void left(bool update_best)
 {
     slide_internal(1, 0,
                    GRID_SIZE, GRID_SIZE,
                    1, 1,
-                   -1, 0);
+                   -1, 0,
+                   update_best);
 }
 /* Right
    0 > > >
@@ -260,12 +264,13 @@ static void left(void)
    3 > > >
    0 1 2 3
 */
-static void right(void)
+static void right(bool update_best)
 {
     slide_internal(GRID_SIZE-2, 0, /* start */
                    -1, GRID_SIZE, /* stop */
                    -1, 1, /* delta */
-                   1, 0); /* lookahead */
+                   1, 0, /* lookahead */
+                   update_best);
 }
 
 /* slightly modified version of base 2 log, returns 1 when given zero, and log2(n)+1 for anything else */
@@ -531,7 +536,7 @@ static bool check_gameover(void)
     int oldscore=ctx->score;
     bool have_legal_move=false;
     memset(&merged_grid,0,SPACES*sizeof(bool));
-    up();
+    up(false);
     if(memcmp(&old_grid, &ctx->grid, sizeof(int)*SPACES))
     {
         restore_old_grid();
@@ -540,7 +545,7 @@ static bool check_gameover(void)
     }
     restore_old_grid();
     memset(&merged_grid,0,SPACES*sizeof(bool));
-    down();
+    down(false);
     if(memcmp(&old_grid, &ctx->grid, sizeof(int)*SPACES))
     {
         restore_old_grid();
@@ -549,7 +554,7 @@ static bool check_gameover(void)
     }
     restore_old_grid();
     memset(&merged_grid,0,SPACES*sizeof(bool));
-    left();
+    left(false);
     if(memcmp(&old_grid, &ctx->grid, sizeof(int)*SPACES))
     {
         restore_old_grid();
@@ -558,7 +563,7 @@ static bool check_gameover(void)
     }
     restore_old_grid();
     memset(&merged_grid,0,SPACES*sizeof(bool));
-    right();
+    right(false);
     if(memcmp(&old_grid, &ctx->grid, sizeof(int)*SPACES))
     {
         restore_old_grid();
@@ -804,7 +809,7 @@ static enum plugin_status do_game(bool newgame)
             for(int i=0;i<GRID_SIZE-1;++i)
             {
                 memcpy(grid_before_anim_step, ctx->grid, sizeof(int)*SPACES);
-                up();
+                up(true);
                 if(memcmp(grid_before_anim_step, ctx->grid, sizeof(int)*SPACES))
                 {
                     rb->sleep(ANIM_SLEEPTIME);
@@ -817,7 +822,7 @@ static enum plugin_status do_game(bool newgame)
             for(int i=0;i<GRID_SIZE-1;++i)
             {
                 memcpy(grid_before_anim_step, ctx->grid, sizeof(int)*SPACES);
-                down();
+                down(true);
                 if(memcmp(grid_before_anim_step, ctx->grid, sizeof(int)*SPACES))
                 {
                     rb->sleep(ANIM_SLEEPTIME);
@@ -830,7 +835,7 @@ static enum plugin_status do_game(bool newgame)
             for(int i=0;i<GRID_SIZE-1;++i)
             {
                 memcpy(grid_before_anim_step, ctx->grid, sizeof(int)*SPACES);
-                left();
+                left(true);
                 if(memcmp(grid_before_anim_step, ctx->grid, sizeof(int)*SPACES))
                 {
                     rb->sleep(ANIM_SLEEPTIME);
@@ -843,7 +848,7 @@ static enum plugin_status do_game(bool newgame)
             for(int i=0;i<GRID_SIZE-1;++i)
             {
                 memcpy(grid_before_anim_step, ctx->grid, sizeof(int)*SPACES);
-                right();
+                right(true);
                 if(memcmp(grid_before_anim_step, ctx->grid, sizeof(int)*SPACES))
                 {
                     rb->sleep(ANIM_SLEEPTIME);
