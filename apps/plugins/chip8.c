@@ -1302,7 +1302,7 @@ static byte chip8_keymap[16];
 static unsigned long starttimer; /* Timer value at the beginning */
 static unsigned long cycles; /* Number of update cycles (50Hz) */
 
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+#if (CONFIG_CODEC != SWCODEC) && !defined(SIMULATOR)
 static bool is_playing;
 
 /* one frame of bitswapped mp3 data */
@@ -1318,7 +1318,10 @@ static unsigned char beep[]={255,
  20,100, 18, 96, 41, 96, 78,102,  7,201,122, 76,119, 20,137, 37,177, 15,132,224,
  20, 17,191, 67,147,187,116,211, 41,169, 63,172,182,186,217,155,111,140,104,254,
 111,181,184,144, 17,148, 21,101,166,227,100, 86, 85, 85, 85}; 
+<<<<<<< HEAD
 #if (CONFIG_CODEC == HWCODEC)
+=======
+>>>>>>> chip8bug2
 /* callback to request more mp3 data */
 static void callback(const void** start, size_t* size)
 {
@@ -1333,7 +1336,7 @@ static void callback(const void** start, size_t* size)
 /****************************************************************************/
 static void chip8_sound_on (void) 
 {
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+#if(CONFIG_CODEC != SWCODEC) && !defined(SIMULATOR)
     if (!is_playing)
         rb->mp3_play_pause(true); /* kickoff audio */
 #endif
@@ -1344,7 +1347,7 @@ static void chip8_sound_on (void)
 /****************************************************************************/
 static void chip8_sound_off (void) 
 { 
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+#if (CONFIG_CODEC != SWCODEC) && !defined(SIMULATOR)
     if (!is_playing)
         rb->mp3_play_pause(false); /* pause audio */
 #endif
@@ -1559,7 +1562,7 @@ static bool chip8_run(const char* file)
     cycles = 0;
     chip8();
 
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+#if (CONFIG_CODEC != SWCODEC) && !defined(SIMULATOR)
     if (!is_playing)
     {   /* stop it if we used audio */
         rb->mp3_play_stop(); /* Stop audio playback */
