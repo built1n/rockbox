@@ -149,6 +149,20 @@ static struct settings {
     int startcash;
     int startfood;
     int movesperturn;
+    /* 1=easy 2=medium 3=hard */
+    /* AI difficulty works like this:
+       easy:
+        - no movement
+        - no investing
+       medium:
+        - movement
+        - investing
+        - can build factories/farms
+       hard:
+        - nuclear war
+    */
+    int compdiff;
+    int spoil_enabled; /* 0=no 1=yes */
 } superdom_settings;
 
 static struct resources humanres;
@@ -346,15 +360,30 @@ static int calc_strength(int colour, int x, int y)
         {
             if(board[x+a][y+b].colour==colour)
             {
-                score += 10;
-                if(board[x + a][y + b].tank || board[x + a][y + b].farm)
-                    score += 30;
-                if(board[x + a][y + b].plane || board[x + a][y + b].ind)
-                    score += 40;
-                if(board[x + a][y + b].nuke)
-                    score += 20;
-                if(board[x + a][y + b].men)
-                    score += (board[x + a][y + b].men*133/1000);
+                if(a && b) /* diagonally adjacent, give less influence */
+                {
+                    score += 5;
+                    if(board[x + a][y + b].tank || board[x + a][y + b].farm)
+                        score += 15;
+                    if(board[x + a][y + b].plane || board[x + a][y + b].ind)
+                        score += 20;
+                    if(board[x + a][y + b].nuke)
+                        score += 10;
+                    if(board[x + a][y + b].men)
+                        score += (board[x + a][y + b].men*133/1000);
+                }
+                else
+                {
+                    score += 10;
+                    if(board[x + a][y + b].tank || board[x + a][y + b].farm)
+                        score += 30;
+                    if(board[x + a][y + b].plane || board[x + a][y + b].ind)
+                        score += 40;
+                    if(board[x + a][y + b].nuke)
+                        score += 20;
+                    if(board[x + a][y + b].men)
+                        score += (board[x + a][y + b].men*133/1000);
+                }
             }
         }
     }
@@ -486,7 +515,7 @@ static int settings_menu(void)
     MENUITEM_STRINGLIST(menu, "Super Domination Settings", NULL,
                         "Computer starting farms", "Computer starting factories",
                         "Human starting farms", "Human starting factories",
-                        "Starting cash", "Starting food", "Moves per turn");
+                        "Starting cash", "Starting food", "Computer difficulty","Food spoilage",  "Moves per turn");
 
     while(1)
     {
@@ -523,6 +552,15 @@ static int settings_menu(void)
                         250, 0, 5000, NULL);
             break;
         case 6:
+            rb->set_int("Computer difficulty", "", UNIT_INT,
+                        &superdom_settings.compdiff, NULL,
+                        1, 1, 3, NULL);
+            break;
+        case 7:
+            superdom_settings.spoil_enabled=(rb->set_bool_options("Food spoilage", NULL, "Enabled",
+                                                                     0, "Disabled", 0, NULL) ? true : false);
+            break;
+        case 8:
             rb->set_int("Moves per turn", "", UNIT_INT,
                         &superdom_settings.movesperturn, NULL,
                         1, 1, 5, NULL);
@@ -1668,6 +1706,18 @@ static int attack_territory(int colour, int x, int y)
     return 0;
 }
 
+static void spoil_food(void)
+{
+    /* spoil 0-10% of food, different amounts for computer/player */
+    int spoil_amount=humanres.food*(0.1*rb->rand()/RAND_MAX);
+    rb->splashf(2*HZ, "Spoilage claims %d units of food", spoil_amount);
+    humanres.food-=spoil_amount;
+
+    /* now for computer */
+    spoil_amount=compres.food*(0.1*rb->rand()/RAND_MAX);
+    compres.food-=spoil_amount;
+}
+
 static int war_menu(void)
 {
     int selection = 0, temp;
@@ -1823,6 +1873,12 @@ static void computer_allocate(void)
     }
     if(offensive)
     {
+        /* AI player will buy nukes if possible */
+        if(compres.cash > 2300 && superdom_settings.compdiff>=3)
+        {
+            /* TODO: buy nukes here! */
+        }
+
         /* The AI is going to go straight for the throat here and attack
          * the player's farms and factories. The amount of cash
          * the AI has to spend will determine how many targets there are */
@@ -2001,6 +2057,11 @@ static int find_adj_target(int x, int y, struct cursor* adj)
     return 0;
 }
 
+static void computer_movement(void)
+{
+
+}
+
 static void computer_war(void)
 {
     /* Work out where to attack - prioritise the defence of buildings */
@@ -2141,6 +2202,8 @@ static void default_settings(void)
     superdom_settings.startcash = 0;
     superdom_settings.startfood = 0;
     superdom_settings.movesperturn = 2;
+    superdom_settings.compdiff=2;
+    superdom_settings.spoil_enabled=false;
 }
 
 static int average_strength(int colour)
@@ -2259,6 +2322,18 @@ startyear:
             return PLUGIN_OK;
             break;
         }
+        /* computer movement */
+        computer_movement();
+
+        /* spoil food */
+        if(superdom_settings.spoil_enabled)
+        {
+            rb->splash(HZ, "Spoiling food...");
+            spoil_food();
+        }
+        else
+            rb->splashf(HZ, "spoilage disabled");
+
         /* feed men */
         if(humanres.men)
         {
