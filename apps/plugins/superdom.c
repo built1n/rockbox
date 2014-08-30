@@ -1856,7 +1856,7 @@ static void computer_allocate(void)
 {
     /* Firstly, decide whether to go offensive or defensive.
      * This is primarily decided by the human player posing a threat to either
-     * the computer's farms or factories */
+     * the computer's farms, factories or nukes */
     int i, j, k;
     bool offensive = true;
     struct threat threats[4];
@@ -1880,8 +1880,9 @@ static void computer_allocate(void)
                 numterritory++;
                 str_diff = calc_strength(COLOUR_LIGHT,i,j) -
                     calc_strength(COLOUR_DARK,i,j);
-                if(str_diff > 0 && (board[i][j].ind || board[i][j].farm))
+                if(str_diff > 0 && (board[i][j].ind || board[i][j].farm || board[i][j].nuke))
                 {
+                    /* computer's farm/factory/nuke is being threatened */
                     if(numthreats < 3)
                     {
                         offensive = false;
@@ -1895,11 +1896,9 @@ static void computer_allocate(void)
             rb->yield();
         }
     }
-    rb->splashf(HZ*2, "AI: diff is %d", superdom_settings.compdiff);
     /* AI player will buy nukes if possible first */
     if(compres.cash > PRICE_NUKE + PRICE_TANK && superdom_settings.compdiff>=3)
     {
-        rb->splashf(HZ, "Buying nukes...");
         while(compres.cash >= PRICE_NUKE && compres.nukes < numterritory)
         {
             i = rb->rand()%BOARD_SIZE + 1;
@@ -1914,7 +1913,7 @@ static void computer_allocate(void)
     if(offensive)
     {
         /* The AI is going to go straight for the throat here and attack
-         * the player's farms and factories. The amount of cash
+         * the player's farms, nukes, and factories. The amount of cash
          * the AI has to spend will determine how many targets there are */
         if(compres.cash > 1200)
         {
@@ -1934,7 +1933,7 @@ static void computer_allocate(void)
             for(j=1;j<=BOARD_SIZE;j++)
             {
                 if(has_adjacent(i,j) &&
-                   (board[i][j].ind || board[i][j].farm))
+                   (board[i][j].ind || board[i][j].farm || board[i][j].nuke))
                 {
                     if(k<numtargets)
                     {
@@ -2054,7 +2053,7 @@ static void computer_allocate(void)
             }
         }
     }
-    /* no investing in easy */
+    /* no investing in easy mode */
     if(superdom_settings.compdiff>=2)
     {
         compres.bank += compres.cash;
@@ -2104,7 +2103,7 @@ static void computer_movement(void)
 
 static void computer_war(void)
 {
-    /* Work out where to attack - prioritise the defence of buildings */
+    /* Work out where to attack - prioritise the defence of buildings and nukes */
     int i, j;
     bool found_target = true;
     struct cursor adj;
@@ -2117,7 +2116,7 @@ static void computer_war(void)
             for(j=1;j<=BOARD_SIZE;j++)
             {
                 if((board[i][j].colour == COLOUR_DARK)   &&
-                   (board[i][j].farm || board[i][j].ind) &&
+                   (board[i][j].farm || board[i][j].ind || board[i][j].nuke) &&
                    find_adj_target(i, j, &adj))
                 {
                     found_target = true;
@@ -2142,7 +2141,7 @@ static void computer_war(void)
             for(j=1;j<=BOARD_SIZE;j++)
             {
                 if(board[i][j].colour == COLOUR_LIGHT    &&
-                   (board[i][j].ind || board[i][j].farm) &&
+                   (board[i][j].ind || board[i][j].farm || board[i][j].nuke) &&
                    (calc_strength(COLOUR_DARK, i, j) >= calc_strength(COLOUR_LIGHT, i, j)))
                 {
                     found_target = true;
