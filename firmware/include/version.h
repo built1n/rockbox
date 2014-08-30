@@ -7,7 +7,7 @@
  *                     \/            \/     \/    \/            \/
  * $Id$
  *
- * Copyright (C) 2002 by wavey@wavey.org
+ * Copyright (C) 2010 by Frank Gevaerts
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,13 +18,9 @@
  * KIND, either express or implied.
  *
  ****************************************************************************/
+#ifndef _RBVERSION_H_
+#define _RBVERSION_H_
 
-#ifndef __PANIC_H__
-#define __PANIC_H__
+extern const char rbversion[];
 
-#include "config.h"
-#include "gcc_extensions.h"
-
-void panicf( const char *fmt, ... ) ATTRIBUTE_PRINTF(1, 2) NORETURN_ATTR;
-
-#endif /* __PANIC_H__ */
+#endif /* _RBVERSION_H_ */

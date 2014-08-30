@@ -1318,23 +1318,12 @@ static unsigned char beep[]={255,
  20,100, 18, 96, 41, 96, 78,102,  7,201,122, 76,119, 20,137, 37,177, 15,132,224,
  20, 17,191, 67,147,187,116,211, 41,169, 63,172,182,186,217,155,111,140,104,254,
 111,181,184,144, 17,148, 21,101,166,227,100, 86, 85, 85, 85}; 
-<<<<<<< HEAD
-<<<<<<< HEAD
-#if (CONFIG_CODEC == HWCODEC)
-=======
->>>>>>> chip8bug2
-=======
->>>>>>> vanilla
 /* callback to request more mp3 data */
 static void callback(const void** start, size_t* size)
 {
     *start = beep; /* give it the same frame again */
     *size = sizeof(beep);
 }
-<<<<<<< HEAD
-#endif /* CONFIG_CODEC==HWCODEC */
-=======
->>>>>>> vanilla
 #endif /* PLATFORM_NATIVE */
 
 /****************************************************************************/
