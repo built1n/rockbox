@@ -189,15 +189,9 @@ static struct cursor {
 } cursor;
 
 static struct tile board[BOARD_SIZE+2][BOARD_SIZE+2];
-<<<<<<< HEAD
 
 static const struct button_mapping *plugin_contexts[] = { pla_main_ctx };
 
-=======
-
-static const struct button_mapping *plugin_contexts[] = { pla_main_ctx };
-
->>>>>>> superdomsplit
 static void init_board(void)
 {
     int i,j;
