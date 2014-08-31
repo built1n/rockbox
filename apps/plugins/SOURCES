@@ -267,4 +267,5 @@ test_piezo.c
 
 #if defined(HAVE_HARDWARE_CLICK) && !defined(SIMULATOR)
 tonebox.c
+annoyatron.c
 #endif
