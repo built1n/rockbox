@@ -1942,38 +1942,6 @@ static void computer_allocate(void)
             }
         }
     }
-    if(superdom_settings.compdiff>=AI_BUILD_INDS_FARMS_LEVEL && compres.cash>=PRICE_FACTORY)
-    {
-        while(compres.cash>=PRICE_FACTORY)
-        {
-            if(compres.farms<compres.inds)
-            {
-                while(compres.farms<compres.inds && compres.cash>=PRICE_FARM)
-                {
-                    i = rb->rand()%BOARD_SIZE + 1;
-                    j = rb->rand()%BOARD_SIZE + 1;
-                    if(board[i][j].colour == COLOUR_DARK && !board[i][j].farm)
-                    {
-                        buy_resources(COLOUR_DARK, 3, i, j, 0);
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                while(compres.inds<compres.farms && compres.cash>=PRICE_FACTORY)
-                {
-                    i = rb->rand()%BOARD_SIZE + 1;
-                    j = rb->rand()%BOARD_SIZE + 1;
-                    if(board[i][j].colour == COLOUR_DARK && !board[i][j].ind)
-                    {
-                        buy_resources(COLOUR_DARK, 4, i, j, 0);
-                        break;
-                    }
-                }
-            }
-        }
-    }
     /* AI will buy nukes first if possible */
     if(compres.cash > PRICE_NUKE + PRICE_TANK && superdom_settings.compdiff>=AI_BUILD_NUKES_LEVEL)
     {
@@ -1984,6 +1952,36 @@ static void computer_allocate(void)
             if(board[i][j].colour == COLOUR_DARK)
             {
                 buy_resources(COLOUR_DARK, 5, i, j, 0);
+            }
+            rb->yield();
+        }
+    }
+    /* then build some (up to 2 per turn) farms/factories if we have tons of cash*/
+    if(superdom_settings.compdiff>AI_BUILD_INDS_FARMS_LEVEL && compres.cash>=PRICE_FACTORY+PRICE_NUKE)
+    {
+        rb->splash(HZ, "Building inds/farms");
+        int built=0;
+        int item_to_build=(compres.farms<compres.inds ? 3 : 4);
+        while(!built && (item_to_build==3 ? compres.farms : compres.inds)<numterritory && compres.cash>=PRICE_FACTORY+PRICE_NUKE)
+        {
+            i = rb->rand()%BOARD_SIZE + 1;
+            j = rb->rand()%BOARD_SIZE + 1;
+            if(board[i][j].colour == COLOUR_DARK)
+            {
+                buy_resources(COLOUR_DARK, item_to_build, i, j, 0);
+                ++built;
+            }
+            rb->yield();
+        }
+        item_to_build=(compres.farms<compres.inds ? 3 : 4);
+        while(built==1 && (item_to_build==3 ? compres.farms : compres.inds)<numterritory && compres.cash>=PRICE_FACTORY+PRICE_NUKE)
+        {
+            i = rb->rand()%BOARD_SIZE + 1;
+            j = rb->rand()%BOARD_SIZE + 1;
+            if(board[i][j].colour == COLOUR_DARK)
+            {
+                buy_resources(COLOUR_DARK, item_to_build, i, j, 0);
+                ++built;
             }
             rb->yield();
         }
