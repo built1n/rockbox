@@ -21,8 +21,8 @@
 #include "plugin.h"
 #include "lib/pluginlib_actions.h"
 
-#define MIN_TIME 1//(60*HZ)
-#define MAX_TIME HZ//(120*HZ)
+#define MIN_TIME (2*60*HZ)
+#define MAX_TIME (8*60*HZ)
 
 static const struct button_mapping *plugin_contexts[] = { pla_main_ctx };
 
@@ -31,11 +31,12 @@ enum plugin_status plugin_start(const void* param)
     (void)param;
     rb->splash(0, "Press any key to begin...");
     rb->button_get(true);
+    rb->lcd_update();
+    rb->splash(0, "Annoy-a-tron started, press MENU+SELECT to exit.");
     rb->srand(*rb->current_tick);
     for(;;)
     {
         long beep_time=*rb->current_tick+(rb->rand()%(MAX_TIME-MIN_TIME)+MIN_TIME);
-        rb->splashf(0, "beeping at tick %ld", beep_time);
         while(*rb->current_tick<beep_time)
         {
 #ifdef HAVE_ADJUSTABLE_CPU_FREQ
@@ -44,6 +45,7 @@ enum plugin_status plugin_start(const void* param)
             int button=pluginlib_getaction(0, plugin_contexts, ARRAYLEN(plugin_contexts));
             if(button==PLA_CANCEL)
                 return PLUGIN_OK;
+            rb->yield();
         }
         int beep_ms=rb->rand()%1000+500;
         unsigned int freq=2000;
@@ -54,7 +56,6 @@ enum plugin_status plugin_start(const void* param)
             freq=12000;
         else
             freq=15000;
-        rb->splashf(0, "Freq: %d", freq);
         rb->piezo_play(beep_ms*1000, freq, true);
     }
 }
