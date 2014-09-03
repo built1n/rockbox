@@ -146,6 +146,9 @@ metronome.c
 #ifdef HAVE_LCD_BITMAP             /* Not for the Archos Player */
 
 2048.c
+
+amaze.c
+
 /* Lua needs at least 160 KB to work in */
 #if PLUGIN_BUFFER_SIZE >= 0x80000
 boomshine.lua
@@ -165,6 +168,7 @@ spacerocks.c
 blackjack.c
 bounce.c
 bubbles.c
+
 calculator.c
 chip8.c
 chopper.c
