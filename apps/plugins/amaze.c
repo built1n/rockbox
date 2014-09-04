@@ -32,7 +32,7 @@
 
 #else
 
-#define BUT_QUIT        PLA_QUIT
+#define BUT_QUIT        PLA_EXIT
 #define BUT_RIGHT       PLA_RIGHT
 #define BUT_RIGHTRPT    PLA_RIGHT_REPEAT
 #define BUT_LEFT        PLA_LEFT
@@ -42,12 +42,12 @@
 #define BUT_DOWN        PLA_DOWN
 #define BUT_DOWNRPT     PLA_DOWN_REPEAT
 /*define BUT_MARK        PLA_FIRE*/
-#define BUT_COMPASS     (PLA_FIRE | PLA_DOWN)
+#define BUT_COMPASS     (PLA_SELECT | PLA_DOWN)
 
 #endif
 
 #ifdef __PLUGINLIB_ACTIONS_H__
-const struct button_mapping *plugin_contexts[] = {generic_directions, generic_actions};
+const struct button_mapping *plugin_contexts[] = {pla_main_ctx};
 #endif
 
 /* Option struct (stolen from clock_menu.c)  */
