@@ -14,24 +14,6 @@
 
 /* Button definitions re-stolen from robotfindskitten.c */
 
-#if (CONFIG_KEYPAD == IPOD_4G_PAD) ||           \
-    (CONFIG_KEYPAD == IPOD_3G_PAD) ||           \
-    (CONFIG_KEYPAD == IPOD_1G2G_PAD)
-#undef __PLUGINLIB_ACTIONS_H__
-#define BUT_QUIT        (BUTTON_SELECT | BUTTON_MENU)
-#define BUT_RIGHT       BUTTON_RIGHT
-#define BUT_RIGHTRPT    (BUTTON_RIGHT | BUTTON_REPEAT)
-#define BUT_LEFT        BUTTON_LEFT
-#define BUT_LEFTRPT     (BUTTON_LEFT | BUTTON_REPEAT)
-#define BUT_UP          BUTTON_MENU
-#define BUT_UPRPT       (BUTTON_MENU | BUTTON_REPEAT)
-#define BUT_DOWN        BUTTON_PLAY
-#define BUT_DOWNRPT     (BUTTON_PLAY | BUTTON_REPEAT)
-/*define BUT_MARK        BUTTON_SELECT*/
-#define BUT_COMPASS     (BUTTON_SELECT | BUTTON_PLAY)
-
-#else
-
 #define BUT_QUIT        PLA_EXIT
 #define BUT_RIGHT       PLA_RIGHT
 #define BUT_RIGHTRPT    PLA_RIGHT_REPEAT
@@ -44,11 +26,10 @@
 /*define BUT_MARK        PLA_FIRE*/
 #define BUT_COMPASS     (PLA_SELECT | PLA_DOWN)
 
-#endif
 
-#ifdef __PLUGINLIB_ACTIONS_H__
+/*#ifdef __PLUGINLIB_ACTIONS_H__*/
 const struct button_mapping *plugin_contexts[] = {pla_main_ctx};
-#endif
+/*#endif*/
 
 /* Option struct (stolen from clock_menu.c)  */
 static const struct opt_items noyes_text[] = {
