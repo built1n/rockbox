@@ -12,9 +12,11 @@
 #include "plugin.h"
 #include "lib/pluginlib_actions.h"
 
-/* Button definitions re-stolen from robotfindskitten.c */
+#ifdef __PLUGINLIB_ACTIONS_H__
+const struct button_mapping *plugin_contexts[] = { pla_main_ctx };
+#endif
 
-#define BUT_QUIT        PLA_EXIT
+#define BUT_QUIT        PLA_CANCEL
 #define BUT_RIGHT       PLA_RIGHT
 #define BUT_RIGHTRPT    PLA_RIGHT_REPEAT
 #define BUT_LEFT        PLA_LEFT
@@ -23,13 +25,8 @@
 #define BUT_UPRPT       PLA_UP_REPEAT
 #define BUT_DOWN        PLA_DOWN
 #define BUT_DOWNRPT     PLA_DOWN_REPEAT
-/*define BUT_MARK        PLA_FIRE*/
+#define BUT_MARK        PLA_SELECT
 #define BUT_COMPASS     (PLA_SELECT | PLA_DOWN)
-
-
-/*#ifdef __PLUGINLIB_ACTIONS_H__*/
-const struct button_mapping *plugin_contexts[] = {pla_main_ctx};
-/*#endif*/
 
 /* Option struct (stolen from clock_menu.c)  */
 static const struct opt_items noyes_text[] = {
@@ -106,6 +103,7 @@ int gx, gy;             /* Goal position */
 int gdist;              /* Distance from start to goal */
 int won = 0;            /* Reached goal */
 int cheated = 0;        /* Cheated somehow */
+int button;             /* Button data */
 
 #define FIELD_SIZE 80
 #define MAP_CONST 20
@@ -138,8 +136,6 @@ extern const fb_data amaze_tiles_7[];
 /* gh - got here */
 void gh (void)
 {
-    int button;
-
     rb->splash(HZ, "got here!");
     button = rb->button_get(false);
 }
@@ -549,12 +545,14 @@ void draw_side(int fx, int bx, int by, int tan_n, int tan_d, bool isleft)
 
     if(isleft)
         signx = -1;
-    else {
+    else
+    {
         signx = 1;
     }
 
 #if LCD_DEPTH > 1
-    for(i = bx; i < fx + 1; i++) {
+    for(i = bx; i < fx + 1; i++)
+    {
         /* add some stripes */
         if(i % 3 == 0)
             rb->lcd_set_foreground(COLOR_PERP);
@@ -607,7 +605,8 @@ void draw_side_tri(int fx, int fy, int bx, int tan_n, int tan_d,
 
     signy = 1;
 
-    while(signy >= -1) {
+    while(signy >= -1)
+    {
 #if LCD_DEPTH > 1
         if(signy == 1)
             if(isgoal)
@@ -622,7 +621,8 @@ void draw_side_tri(int fx, int fy, int bx, int tan_n, int tan_d,
 
         signx = 1;
 
-        while(signx >= -1) {
+        while(signx >= -1)
+        {
             for(i = fx; i > bx; i--)
                 rb->lcd_vline(CX + signx * i/2,
                               CY + signy * fy/2,
@@ -685,13 +685,15 @@ void draw_center_sq(int fy, int bx, int by, bool isvisited, bool isgoal,
 #endif
     rb->lcd_fillrect(CX - bx/2, CY + by/2, bx, (fy - by)/2 + 1);
 
-    if(isvisited && chr >= 0 && chr <= 3) {
+    if(isvisited && chr >= 0 && chr <= 3)
+    {
 #if LCD_DEPTH > 1
         rb->lcd_set_foreground(COLOR_MARK);
 #else
         rb->lcd_set_drawmode(DRMODE_SOLID|DRMODE_INVERSEVID);
 #endif
-        if(isfront) { /* cell is marked in front, draw arrow */
+        if(isfront)
+        { /* cell is marked in front, draw arrow */
             if          (chr == ((int)(pdir) + 3) % 4)
                 draw_pointer(DIR_LEFT, false);
             else if     (chr == ((int)(pdir) + 1) % 4)
@@ -736,7 +738,8 @@ void graphic_view(void)
             break;
     lastdist = dist - 1;
 
-    if (!show_map) {
+    if (!show_map)
+    {
         clearmap(umap);
         copyumap(gy, gx, 1);
     }
@@ -745,7 +748,8 @@ void graphic_view(void)
     clearscreen();
 #endif
 
-    while (--dist >= 0) {
+    while (--dist >= 0)
+    {
         x = px + dx * dist;
         y = py + dy * dist;
 
@@ -769,21 +773,25 @@ void graphic_view(void)
 
         if (a)
             draw_end_wall(crd_x[dist+1], crd_y[dist+1]);
-        if (l) {
+        if (l)
+        {
             draw_side(crd_x[dist], crd_x[dist+1],
                       crd_y[dist+1], tan_n, tan_d, true);
         }
-        else {
+        else
+        {
             draw_hall(crd_x[dist], crd_x[dist+1],
                       crd_y[dist+1], true);
             draw_hall_crnr(crd_x[dist], crd_y[dist], crd_x[dist+1],
                            crd_y[dist+1], true, gl, el);
         }
-        if (r) {
+        if (r)
+        {
             draw_side(crd_x[dist], crd_x[dist+1],
                       crd_y[dist+1], tan_n, tan_d, false);
         }
-        else {
+        else
+        {
             draw_hall(crd_x[dist], crd_x[dist+1],
                       crd_y[dist+1], false);
             draw_hall_crnr(crd_x[dist], crd_y[dist],
@@ -819,7 +827,8 @@ void graphic_view(void)
 
    x = px + dx;
    y = py + dy;
-   while (at(y, x) != BLOCK)) {
+   while (at(y, x) != BLOCK))
+   {
    x += dx;
    y += dy;
    }
@@ -837,7 +846,8 @@ void win(void)
       char amazed[8] = "amazing!";
       char newton;
 
-      for (i=0; i <= 8; i++) {
+      for (i=0; i <= 8; i++)
+      {
       newton = amazed[i];
       map_write(msg, 0, i + 31, newton);
       }
@@ -856,7 +866,8 @@ void trymove(enum dir dir)
     ny = py + dirtab[(int)dir].y;
     nx = px + dirtab[(int)dir].x;
 
-    if (at(ny, nx) == BLOCK) {
+    if (at(ny, nx) == BLOCK)
+    {
         rb->splash(HZ/8, "Hit a wall!");
         graphic_view();
         return;
@@ -878,7 +889,8 @@ walkleft(void)
     int dx, dy;
     int owon = won;
 
-    while (1) {
+    while (1)
+    {
         rb->lcd_update();
         if (won != owon)
             break;
@@ -891,14 +903,16 @@ walkleft(void)
         /* to the left */
         l = at(py - dx, px + dy) == BLOCK;
 
-        if (!l) {
+        if (!l)
+        {
             mappmove(py, px, LEFT_OF(pdir));
             graphic_view();
             rb->sleep(2);
             trymove(pdir);
             continue;
         }
-        if (a) {
+        if (a)
+        {
             mappmove(py, px, RIGHT_OF(pdir));
             graphic_view();
             continue;
@@ -925,15 +939,18 @@ void draw_tile_map(int xmin, int xmax, int ymin, int ymax)
     char map_unit;
     int tdex = 7; /* tile index */
 
-    enum tile_index { t_down=0, t_right=1, t_up=2, t_left=3, t_visited=4,
-                      t_obspace=5, t_goal=6, t_block=7, t_space=8, t_start=9 };
+    enum tile_index
+    { t_down=0, t_right=1, t_up=2, t_left=3, t_visited=4,
+      t_obspace=5, t_goal=6, t_block=7, t_space=8, t_start=9 };
 
     for(y = ymin; y <= ymax; y++)
-        for(x = xmin; x <= xmax; x++) {
+        for(x = xmin; x <= xmax; x++)
+        {
 
             map_unit = map_read(umap, y, x);
 
-            switch (map_unit) {
+            switch (map_unit)
+            {
             case '.':
                 tdex = t_visited;
                 break;
@@ -955,13 +972,15 @@ void draw_tile_map(int xmin, int xmax, int ymin, int ymax)
             }
             draw_tile(tdex, x - xmin, y - ymin);
         }
-    if(sx>=xmin && sx<=xmax && sy>=ymin && sy<=ymax) {
+    if(sx>=xmin && sx<=xmax && sy>=ymin && sy<=ymax)
+    {
         x = sx;
         y = sy;
         draw_tile(t_start, x - xmin, y - ymin);
     }
 
-    if(px>=xmin && px<=xmax && py>=ymin && py<=ymax) {
+    if(px>=xmin && px<=xmax && py>=ymin && py<=ymax)
+    {
         x = px;
         y = py;
         draw_tile(pdir, x - xmin, y - ymin);
@@ -977,21 +996,25 @@ void check_map_bounds(int *xmin, int *xmax, int *ymin, int *ymax)
     getmaxyx(&maxy, &maxx);
 
     /* bounds check x */
-    if(*xmin < 0) {
+    if(*xmin < 0)
+    {
         *xmax = *xmax - *xmin;
         *xmin = 0;
     }
-    if(*xmax > maxx) {
+    if(*xmax > maxx)
+    {
         *xmin = *xmin - *xmax + maxx;
         *xmax = maxx;
     }
 
     /* bounds check y */
-    if(*ymin < 0) {
+    if(*ymin < 0)
+    {
         *ymax = *ymax - *ymin;
         *ymin = 0;
     }
-    if(*ymax > maxy) {
+    if(*ymax > maxy)
+    {
         *ymin = *ymin - *ymax + maxy;
         *ymax = maxy;
     }
@@ -1050,7 +1073,8 @@ void draw_portion_map(void)
 
     quit_map = false;
 
-    while (!quit_map) {
+    while (!quit_map)
+    {
 
 #ifdef __PLUGINLIB_ACTIONS_H__
         input = pluginlib_getaction(TIMEOUT_BLOCK, plugin_contexts, 2);
@@ -1058,7 +1082,8 @@ void draw_portion_map(void)
         input = rb->button_get(false);
 #endif
 
-        switch(input) {
+        switch(input)
+        {
         case BUT_QUIT:
             quit_map = true;
             break;
@@ -1101,13 +1126,15 @@ bool load_map(char *filename, char *amap)
 
     /* load a map */
     fd = rb->open(filename, O_RDONLY);
-    if (fd < 0) {
+    if (fd < 0)
+    {
         LOGF("Invalid map file: %s\n", filename);
         return false;
     }
 
     n = rb->read(fd, map_size, sizeof(map_size));
-    if (n <= 0) {
+    if (n <= 0)
+    {
         rb->splash(HZ*2, "Invalid map size.");
         return false;
     }
@@ -1116,14 +1143,18 @@ bool load_map(char *filename, char *amap)
     maxxy = MAP_CONST * (maze_size + 1);
     char line[maxxy + 1];
 
-    for(y=0; y < maxxy ; y++) {
+    for(y=0; y < maxxy ; y++)
+    {
         n = rb->read(fd, line, sizeof(line));
-        if (n <= 0) {
+        if (n <= 0)
+        {
             rb->splash(HZ*2, "Loop error.");
             return false;
         }
-        for(x=0; x < maxxy; x++) {
-            switch(line[x]) {
+        for(x=0; x < maxxy; x++)
+        {
+            switch(line[x])
+            {
             case '\n':
                 break;
             case '0': case '1': case '2': case '3':
@@ -1156,8 +1187,10 @@ bool load_map(char *filename, char *amap)
                 newton = VISITED;
                 break;
             }
-            if(is_visited(newton)) {
-                switch(line[x]) {
+            if(is_visited(newton))
+            {
+                switch(line[x])
+                {
                 case 'S':
                     newton = 0;
                     break;
@@ -1197,27 +1230,33 @@ bool save_map(char *filename, char *amap)
     int fd;
     int line_len = (maze_size + 1) * MAP_CONST + 1;
     char line[line_len];
-    char map_size[2] = {'0','\n'};
+    char map_size[2] =
+        {'0','\n'};
 
     line[line_len - 1] = '\n'; /* last cell is a linefeed */
     map_size[0] = (char)(maze_size + 48);
 
     fd = rb->open(filename, O_WRONLY|O_CREAT|O_TRUNC);
-    if(fd >= 0) {
+    if(fd >= 0)
+    {
         rb->write(fd, map_size, 2);
 
         getmaxyx(&maxy, &maxx);
 
-        for(y=0; y < maxy; y++) {
-            for (x=0; x < maxx; x++) {
+        for(y=0; y < maxy; y++)
+        {
+            for (x=0; x < maxx; x++)
+            {
                 map_unit = map_read(amap, y, x);
 
                 if(y == py && x == px)
                     line[x] = (char)(pdir + 48);
                 else if(y == sy && x == sx)
                     line[x] = '+';
-                else {
-                    switch (map_unit) {
+                else
+                {
+                    switch (map_unit)
+                    {
                     case '.':
                         line[x] = '.';
                         break;
@@ -1268,9 +1307,11 @@ int pause_menu(void)
 
     clearscreen();
 
-    while(!menu_quit) {
+    while(!menu_quit)
+    {
         result = rb->do_menu(&menu, &selection, NULL, false);
-        switch(result) {
+        switch(result)
+        {
         case 0:
             menu_quit = true;
             break;
@@ -1329,7 +1370,8 @@ amaze(bool loading_maze)
         rb->splash(0, "Loading...");
     crd_x[0] = LCD_WIDTH + 1;
     crd_y[0] = LCD_HEIGHT + 1;
-    for (i=1; i < MAX_DEPTH + 1; i++) {
+    for (i=1; i < MAX_DEPTH + 1; i++)
+    {
         crd_x[i] = crd_x[i-1]*2/3;
         if(crd_x[i] % 2 != 0) crd_x[i]++;
         crd_y[i] = crd_y[i-1]*2/3;
@@ -1341,7 +1383,8 @@ amaze(bool loading_maze)
     if (!loading_maze)
         makemaze();
     else
-        if (!load_game()) {
+        if (!load_game())
+        {
             rb->splash(HZ*2, "Fatal Error loading map.");
             return 0;
         }
@@ -1364,7 +1407,8 @@ amaze(bool loading_maze)
     clearscreen();
     graphic_view();
 
-    while (!quitting && !won) {
+    while (!quitting && !won)
+    {
 
         rb->lcd_update();
 
@@ -1374,14 +1418,16 @@ amaze(bool loading_maze)
         input = rb->button_get(false);
 #endif
 
-        switch (input) {
+        switch (input)
+        {
         case BUT_QUIT:
             i = pause_menu();
             rb->lcd_setfont(FONT_SYSFIXED);
             clearscreen();
             graphic_view();
 
-            switch (i) {
+            switch (i)
+            {
             case 0:
                 quitting = 1;
                 break;
@@ -1421,7 +1467,8 @@ amaze(bool loading_maze)
             break;
             /*
               case ' ':
-              if (can_shoot) {
+              if (can_shoot)
+              {
               shoot();
               cheated++;
               drawview();
@@ -1440,17 +1487,19 @@ amaze(bool loading_maze)
 
     rb->lcd_update();
     //graphic_view();
-    if (won) {
+    if (won)
+    {
         won = false; /* reset boolean */
-        if (cheated) {
+        if (cheated)
+        {
             rb->splash(HZ*2, "You cheated.");
             return 0;
         }
         rb->splash(HZ*3, "You win!");
         return 1;
     }
-    else {
-        rb->splash(HZ*3, "You lose.");
+    else
+    {
         return 0;
     }
 }
@@ -1458,19 +1507,28 @@ amaze(bool loading_maze)
 bool save_prefs(char *filename)
 {
     int fd;
-    char ms[2] = { (char)(maze_size) + '0', '\n' };
-    char sm[2] = { (char)(show_map) + '0', '\n' };
-    char rv[2] = { (char)(remember_visited) + '0', '\n' };
-    char lt[2] = { (char)(use_large_tiles) + '0', '\n' };
+    char ms[2] =
+        { (char)(maze_size) + '0', '\n' };
+    char sm[2] =
+
+        { (char)(show_map) + '0', '\n' };
+    char rv[2] =
+
+        { (char)(remember_visited) + '0', '\n' };
+    char lt[2] =
+
+        { (char)(use_large_tiles) + '0', '\n' };
 
     fd = rb->open(filename, O_WRONLY|O_CREAT|O_TRUNC);
-    if(fd >= 0) {
+    if(fd >= 0)
+    {
         rb->write(fd, ms, 2);
         rb->write(fd, sm, 2);
         rb->write(fd, rv, 2);
         rb->write(fd, lt, 2);
     }
-    else {
+    else
+    {
         rb->splash(HZ, "Could not save preferences.");
         return false;
     }
@@ -1485,7 +1543,8 @@ bool load_prefs(char *filename)
     char instr[2];
 
     fd = rb->open(filename, O_RDONLY);
-    if (fd < 0) {
+    if (fd < 0)
+    {
         LOGF("Invalid preferences file: %s\n", filename);
         return false;
     }
@@ -1516,9 +1575,11 @@ bool options_menu(void)
 
     load_prefs(PREF_FILE);
 
-    while(!menu_quit) {
+    while(!menu_quit)
+    {
         result = rb->do_menu(&menu, &selection, NULL, false);
-        switch(result) {
+        switch(result)
+        {
         case 0:
             if (!save_prefs(PREF_FILE))
                 rb->splash(HZ, "Could not save preferences.");
