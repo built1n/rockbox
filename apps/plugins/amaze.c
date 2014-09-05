@@ -868,7 +868,6 @@ void trymove(enum dir dir)
 
     if (at(ny, nx) == BLOCK)
     {
-        rb->splash(HZ/8, "Hit a wall!");
         graphic_view();
         return;
     }
@@ -1301,9 +1300,9 @@ int pause_menu(void)
     bool menu_quit = false;
     int selection = 0, result = 0, status = 1;
 
-    MENUITEM_STRINGLIST(menu,"Options", NULL, "Continue", "View Map",
+    MENUITEM_STRINGLIST(menu,"Options", NULL, "Resume Game", "View Map",
                         "Mark Ground", "Clear Mark", "Show Solution",
-                        "Save & Continue", "Save & Quit", "Quit");
+                        "Save", "Quit without Saving", "Quit");
 
     clearscreen();
 
@@ -1313,26 +1312,32 @@ int pause_menu(void)
         switch(result)
         {
         case 0:
+            /* resume */
             menu_quit = true;
             break;
         case 1:
+            /* map */
             menu_quit = true;
             draw_portion_map();
             break;
         case 2:
+            /* trail */
             menu_quit = true;
             punder = pdir + '0';
             break;
         case 3:
+            /* clear mark */
             menu_quit = true;
             punder = VISITED;
             break;
         case 4:
+            /* solver */
             menu_quit = true;
             cheated++;
             walkleft();
             break;
         case 5:
+            /* save */
             menu_quit = true;
             if (save_game())
                 graphic_view();
@@ -1340,15 +1345,17 @@ int pause_menu(void)
                 rb->splash(HZ*3, "Save Error");
             break;
         case 6:
+            /* quit */
+            menu_quit = true;
+            status = 0;
+            break;
+        case 7:
+            /* save+quit */
             menu_quit = true;
             if (save_game())
                 status = 2;
             else
                 rb->splash(HZ*3, "Save Error");
-            break;
-        case 7:
-            menu_quit = true;
-            status = 0;
             break;
         }
     }
