@@ -1,13 +1,26 @@
-/*
- * Copyright David Leonard, 2000. All rights reserved. <Berkeley license>
- * Modified for Rockbox by Jerry Chapman, 2007
+/***************************************************************************
+ *             __________               __   ___.
+ *   Open      \______   \ ____   ____ |  | _\_ |__   _______  ___
+ *   Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /
+ *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
+ *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
+ *                     \/            \/     \/    \/            \/
+ * $Id$
  *
- * All files in this archive are subject to the GNU General Public License.
- * See the file COPYING in the source tree root for full license agreement.
+ * Copyright (C) 2014 Franklin Wei
+ *
+ * Original work (C) 2000 David Leonard
+ * Original Rockbox port by Jerry Chapman, 2007
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
- */
+ *
+ ***************************************************************************/
 
 #include "plugin.h"
 #include "lib/pluginlib_actions.h"
@@ -63,7 +76,7 @@ int maze_size;
 #define COLOR_GOAL      LCD_WHITE
 #define COLOR_COMPASS   LCD_WHITE
 #define COLOR_MARK      LCD_WHITE
-e#define COLOR_PARA      LCD_DARKGRAY /* color side wall */
+    e#define COLOR_PARA      LCD_DARKGRAY /* color side wall */
 #define COLOR_PERP      LCD_LIGHTGRAY /* color wall perp */
 #else /* mono */
 #define COLOR_GROUND    LCD_BLACK
@@ -75,7 +88,7 @@ e#define COLOR_PARA      LCD_DARKGRAY /* color side wall */
 #define COLOR_PERP      LCD_WHITE /* color wall perp */
 #endif
 
-enum chrstyle { A_DOWN, A_RIGHT, A_UP, A_LEFT, A_NORMAL, A_WOB_I, A_GOB_I, A_ROB, A_WOBL, A_YOB, A_WOBL_I };
+    enum chrstyle { A_DOWN, A_RIGHT, A_UP, A_LEFT, A_NORMAL, A_WOB_I, A_GOB_I, A_ROB, A_WOBL, A_YOB, A_WOBL_I };
 
 char SPACE =      ' ';   /* Space you can walk through */
 char BLOCK =      'B';   /* A block that you can't walk through */
@@ -175,7 +188,6 @@ char map_read (char *pane, int y, int x)
     getmaxyx(&maxy, &maxx);
 
     if (x<0 || x>maxx || y<0 || y>maxy) {
-        rb->splash(HZ, "bad read");
         return SPACE;
     }
 
@@ -403,13 +415,6 @@ void showmap(void)
     getmaxyx(&maxy, &maxx);
     for (y = 0; y < maxy; y++)
         for (x = 0; x < maxx; x++) {
-#ifdef __PLUGINLIB_ACTIONS_H__
-            int input = pluginlib_getaction(TIMEOUT_BLOCK, plugin_contexts, ARRAYLEN(plugin_contexts));
-#else
-            int input = rb->button_get(false);
-#endif
-            if(input==BUT_QUIT)
-                return;
             ch = at(y, x);
             if (ch == SPACE) {
                 och = map_read(umap, y, x);
@@ -890,9 +895,20 @@ walkleft(void)
 
     while (1)
     {
+#ifdef __PLUGINLIB_ACTIONS_H__
+        int input = pluginlib_getaction(0, plugin_contexts, ARRAYLEN(plugin_contexts));
+#else
+        int input = rb->button_get(false);
+#endif
+        if(input==BUT_QUIT)
+        {
+            return;
+        }
         rb->lcd_update();
         if (won != owon)
+        {
             break;
+        }
 
         dx = dirtab[(int)pdir].x;
         dy = dirtab[(int)pdir].y;
@@ -917,6 +933,7 @@ walkleft(void)
             continue;
         }
         trymove(pdir);
+        rb->yield();
     }
 }
 
