@@ -723,7 +723,7 @@ bool is_visited(char cell)
 
 void graphic_view(void)
 {
-    int dist, lastdist;
+    int dist;
     int x, y, dx, dy;
     int a, l, r; /* is block? ahead/left/right */
     bool g, gl, gr; /* ground visted? under/left/right */
@@ -736,7 +736,6 @@ void graphic_view(void)
     for (dist = 1; dist < MAX_DEPTH; dist++)
         if (at(py + dy * dist, px + dx * dist) == BLOCK)
             break;
-    lastdist = dist - 1;
 
     if (!show_map)
     {
@@ -1117,9 +1116,9 @@ void draw_portion_map(void)
 bool load_map(char *filename, char *amap)
 {
     int fd;
-    size_t n;
     int x,y;
     int maxxy;
+    size_t n;
     char newton = BLOCK;
     char map_size[2];
 
@@ -1546,7 +1545,6 @@ bool save_prefs(char *filename)
 bool load_prefs(char *filename)
 {
     int fd;
-    size_t n;
     char instr[2];
 
     fd = rb->open(filename, O_RDONLY);
@@ -1556,13 +1554,13 @@ bool load_prefs(char *filename)
         return false;
     }
 
-    n = rb->read(fd, instr, sizeof(instr));
+    rb->read(fd, instr, sizeof(instr));
     maze_size = (int)(instr[0] - '0');
-    n = rb->read(fd, instr, sizeof(instr));
+    rb->read(fd, instr, sizeof(instr));
     show_map = (bool)(instr[0] - '0');
-    n = rb->read(fd, instr, sizeof(instr));
+    rb->read(fd, instr, sizeof(instr));
     remember_visited = (bool)(instr[0] - '0');
-    n = rb->read(fd, instr, sizeof(instr));
+    rb->read(fd, instr, sizeof(instr));
     use_large_tiles = (bool)(instr[0] - '0');
     rb->close(fd);
 
