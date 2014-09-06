@@ -63,7 +63,7 @@ int maze_size;
 #define COLOR_GOAL      LCD_WHITE
 #define COLOR_COMPASS   LCD_WHITE
 #define COLOR_MARK      LCD_WHITE
-#define COLOR_PARA      LCD_DARKGRAY /* color side wall */
+e#define COLOR_PARA      LCD_DARKGRAY /* color side wall */
 #define COLOR_PERP      LCD_LIGHTGRAY /* color wall perp */
 #else /* mono */
 #define COLOR_GROUND    LCD_BLACK
@@ -97,13 +97,14 @@ static char ptab[4] = { 'v', '>', '^', '<' };
 
 int px, py;             /* Player position */
 enum dir pdir;          /* Player direction */
-char punder;             /* character under player, if any */
+char punder;            /* character under player, if any */
 int sx, sy;             /* Start position */
 int gx, gy;             /* Goal position */
 int gdist;              /* Distance from start to goal */
 int won = 0;            /* Reached goal */
 int cheated = 0;        /* Cheated somehow */
 int button;             /* Button data */
+bool loaded=false;      /* Loaded? */
 
 #define FIELD_SIZE 80
 #define MAP_CONST 20
@@ -403,7 +404,7 @@ void showmap(void)
     for (y = 0; y < maxy; y++)
         for (x = 0; x < maxx; x++) {
 #ifdef __PLUGINLIB_ACTIONS_H__
-            int input = pluginlib_getaction(TIMEOUT_BLOCK, plugin_contexts, 2);
+            int input = pluginlib_getaction(TIMEOUT_BLOCK, plugin_contexts, ARRAYLEN(plugin_contexts));
 #else
             int input = rb->button_get(false);
 #endif
@@ -1141,12 +1142,11 @@ bool load_map(char *filename, char *amap)
     maxxy = MAP_CONST * (maze_size + 1);
     char line[maxxy + 1];
 
-    for(y=0; y < maxxy ; y++)
+    for(y=0; y < maxxy-1 ; y++)
     {
         n = rb->read(fd, line, sizeof(line));
         if (n <= 0)
         {
-            rb->splash(HZ*2, "Loop error.");
             return false;
         }
         for(x=0; x < maxxy; x++)
@@ -1208,6 +1208,7 @@ bool load_map(char *filename, char *amap)
         }
     }
     rb->close(fd);
+    rb->remove(filename);
     return true;
 }
 
@@ -1234,7 +1235,7 @@ bool save_map(char *filename, char *amap)
     line[line_len - 1] = '\n'; /* last cell is a linefeed */
     map_size[0] = (char)(maze_size + 48);
 
-    fd = rb->open(filename, O_WRONLY|O_CREAT|O_TRUNC);
+    fd = rb->open(filename, O_WRONLY|O_CREAT|O_TRUNC, 0666);
     if(fd >= 0)
     {
         rb->write(fd, map_size, 2);
@@ -1287,7 +1288,7 @@ bool save_map(char *filename, char *amap)
 
 bool save_game(void)
 {
-    rb->splash(0, "Saving game...");
+    rb->splash(0, "Saving...");
     if (save_map(UMAP_FILE, umap) && save_map(MAP_FILE, map))
         return true;
     else
@@ -1299,9 +1300,9 @@ int pause_menu(void)
     bool menu_quit = false;
     int selection = 0, result = 0, status = 1;
 
-    MENUITEM_STRINGLIST(menu,"Options", NULL, "Resume Game", "View Map",
-                        "Mark Ground", "Clear Mark", "Show Solution",
-                        "Save", "Quit without Saving", "Quit");
+    MENUITEM_STRINGLIST(menu,"Amaze Menu", NULL, "Resume Game", "Start New Game",
+                        "View Map", "Mark Ground", "Clear Mark", "Show Solution",
+                        "Quit without Saving", "Quit");
 
     clearscreen();
 
@@ -1315,33 +1316,59 @@ int pause_menu(void)
             menu_quit = true;
             break;
         case 1:
+        {
+            /* new game */
+            rb->splash(0, "Generating maze...");
+
+            crd_x[0] = LCD_WIDTH + 1;
+            crd_y[0] = LCD_HEIGHT + 1;
+            for (int i=1; i < MAX_DEPTH + 1; i++)
+            {
+                crd_x[i] = crd_x[i-1]*2/3;
+                if(crd_x[i] % 2 != 0) crd_x[i]++;
+                crd_y[i] = crd_y[i-1]*2/3;
+                if(crd_y[i] % 2 != 0) crd_y[i]++;
+            }
+
+            clearmap(umap);
+
+            makemaze();
+
+            /* Show where the goal is */
+
+            copyumap(gy, gx, 1);
+
+            rb->lcd_update();
+
+            mappmove(py, px, pdir);
+
+            if (remember_visited)
+                punder = VISITED;
+            else
+                punder = SPACE;
+            menu_quit=true;
+            break;
+        }
+        case 2:
             /* map */
             menu_quit = true;
             draw_portion_map();
             break;
-        case 2:
+        case 3:
             /* trail */
             menu_quit = true;
             punder = pdir + '0';
             break;
-        case 3:
+        case 4:
             /* clear mark */
             menu_quit = true;
             punder = VISITED;
             break;
-        case 4:
+        case 5:
             /* solver */
             menu_quit = true;
             cheated++;
             walkleft();
-            break;
-        case 5:
-            /* save */
-            menu_quit = true;
-            if (save_game())
-                graphic_view();
-            else
-                rb->splash(HZ*3, "Save Error");
             break;
         case 6:
             /* quit */
@@ -1352,7 +1379,7 @@ int pause_menu(void)
             /* save+quit */
             menu_quit = true;
             if (save_game())
-                status = 2;
+                status = 0;
             else
                 rb->splash(HZ*3, "Save Error");
             break;
@@ -1361,8 +1388,7 @@ int pause_menu(void)
     return status;
 }
 
-int
-amaze(bool loading_maze)
+int amaze(void)
 {
     int quitting;
     int i;
@@ -1370,10 +1396,9 @@ amaze(bool loading_maze)
 
     clearscreen();
     rb->lcd_setfont(FONT_SYSFIXED);
-    if(!loading_maze)
+    if(!loaded)
         rb->splash(0, "Generating maze...");
-    else
-        rb->splash(0, "Loading...");
+
     crd_x[0] = LCD_WIDTH + 1;
     crd_y[0] = LCD_HEIGHT + 1;
     for (i=1; i < MAX_DEPTH + 1; i++)
@@ -1386,14 +1411,8 @@ amaze(bool loading_maze)
 
     clearmap(umap);
 
-    if (!loading_maze)
+    if (!loaded)
         makemaze();
-    else
-        if (!load_game())
-        {
-            rb->splash(HZ*2, "Fatal Error loading map.");
-            return 0;
-        }
 
     /* Show where the goal is */
 
@@ -1419,7 +1438,7 @@ amaze(bool loading_maze)
         rb->lcd_update();
 
 #ifdef __PLUGINLIB_ACTIONS_H__
-        input = pluginlib_getaction(TIMEOUT_BLOCK, plugin_contexts, 2);
+        input = pluginlib_getaction(TIMEOUT_BLOCK, plugin_contexts, ARRAYLEN(plugin_contexts));
 #else
         input = rb->button_get(false);
 #endif
@@ -1513,19 +1532,12 @@ amaze(bool loading_maze)
 bool save_prefs(char *filename)
 {
     int fd;
-    char ms[2] =
-        { (char)(maze_size) + '0', '\n' };
-    char sm[2] =
+    char ms[2] = { (char)(maze_size) + '0', '\n' };
+    char sm[2] = { (char)(show_map) + '0', '\n' };
+    char rv[2] = { (char)(remember_visited) + '0', '\n' };
+    char lt[2] = { (char)(use_large_tiles) + '0', '\n' };
 
-        { (char)(show_map) + '0', '\n' };
-    char rv[2] =
-
-        { (char)(remember_visited) + '0', '\n' };
-    char lt[2] =
-
-        { (char)(use_large_tiles) + '0', '\n' };
-
-    fd = rb->open(filename, O_WRONLY|O_CREAT|O_TRUNC);
+    fd = rb->open(filename, O_WRONLY|O_CREAT|O_TRUNC, 0666);
     if(fd >= 0)
     {
         rb->write(fd, ms, 2);
@@ -1567,14 +1579,22 @@ bool load_prefs(char *filename)
     return true;
 }
 
+static int menu_cb(int action, const struct menu_item_ex *this_item)
+{
+    int idx=((intptr_t)this_item);
+    if(action==ACTION_REQUEST_MENUITEM && !loaded && (idx==0 || idx==6))
+        return ACTION_EXIT_MENUITEM;
+    return action;
+}
+
 bool options_menu(void)
 {
     int result = 0, selection = 0;
     bool menu_quit = false, status = true;
 
-    MENUITEM_STRINGLIST(menu,"Options", NULL, "Play Game", "Load Game",
+    MENUITEM_STRINGLIST(menu,"Amaze Menu", menu_cb, "Resume Game", "Start New Game",
                         "Set Maze Size", "Show Map", "Remember Path",
-                        "Use Large Tiles", "Quit");
+                        "Use Large Tiles", "Quit without Saving", "Quit");
 
     clearscreen();
 
@@ -1588,13 +1608,14 @@ bool options_menu(void)
         case 0:
             if (!save_prefs(PREF_FILE))
                 rb->splash(HZ, "Could not save preferences.");
-            if(!amaze(false))
+            if(!amaze())
                 menu_quit = true;
             break;
         case 1:
+            loaded=false;
             if (!save_prefs(PREF_FILE))
                 rb->splash(HZ, "Could not save preferences.");
-            if(!amaze(true))
+            if(!amaze())
                 menu_quit = true;
             break;
         case 2:
@@ -1614,6 +1635,14 @@ bool options_menu(void)
                            noyes_text, 2, NULL);
             break;
         case 6:
+            /* quit wo/ saving */
+            menu_quit = true;
+            status = false;
+            break;
+        case 7:
+            /* save+quit */
+            if(loaded)
+                save_game();
             menu_quit = true;
             status = false;
             break;
@@ -1633,6 +1662,8 @@ enum plugin_status plugin_start(const void *parameter)
     remember_visited=1;
     use_large_tiles=1;
     maze_size=1;
+
+    loaded=load_game();
 
     /* let's go, gentlemen, we have some work to do */
 #if LCD_DEPTH > 1
