@@ -308,7 +308,7 @@ static int record_linebreak=0; /*flag for line break in recorded line*/
 static void viewer_exit(void *parameter);
 static struct linestate render(struct linestate cur, int norender,
                                int linktonote);
-static void readlink(struct linestate cur, int link, char * namebuf,
+static void read_link(struct linestate cur, int link, char * namebuf,
                      int buflen);
 
 static void viewer_exit(void *parameter)
@@ -984,7 +984,7 @@ static struct linestate render(struct linestate cur, int norender,
     return ((nextline.renderoff==-1) ? cur : nextline);
 }
 
-static void readlink(struct linestate cur, int link, char * namebuf, int buflen)
+static void read_link(struct linestate cur, int link, char * namebuf, int buflen)
 {
     int linkcount=0;
 
@@ -1640,7 +1640,7 @@ loadnewarticle:
                     case MODE_LINK:
                         /* load a new article */
                         advance_history(1);
-                        readlink(curlinestate,linkno,hist[curhist].name,ARTICLENAMEBUF_LENGTH);
+                        read_link(curlinestate,linkno,hist[curhist].name,ARTICLENAMEBUF_LENGTH);
                         if ((target=rb->strrchr(hist[curhist].name,'#')))
                         {
                             /* cut the target name off the end of the string */
