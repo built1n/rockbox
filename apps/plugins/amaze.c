@@ -9,7 +9,9 @@
  *
  * Copyright (C) 2014 Franklin Wei
  *
- * Original work (C) 2000 David Leonard
+ * Original work (C) 2000 David Leonard, public domain according to
+ * <http://www.adaptive-enterprises.com.au/~d/software/amaze/>
+ *
  * Original Rockbox port by Jerry Chapman, 2007
  *
  * This program is free software; you can redistribute it and/or
