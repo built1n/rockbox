@@ -66,7 +66,11 @@ enum plugin_status plugin_start(const void* param)
                 if(freq)
                     rb->piezo_play(dur, freq, true);
                 else
+#if HZ==100
                     rb->sleep(dur/10000.0); /* FIXME: Assumes that HZ is 100 */
+#else
+#error "FIXME: HZ assumed to be 100"
+#endif
                 break;
             }
             case 0:
