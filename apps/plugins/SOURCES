@@ -271,6 +271,6 @@ test_piezo.c
 #endif /* HAVE_TEST_PLUGINS */
 
 #if defined(HAVE_HARDWARE_CLICK) && !defined(SIMULATOR)
-tonebox.c
+tinbox.c
 annoyatron.c
 #endif
