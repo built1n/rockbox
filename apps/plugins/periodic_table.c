@@ -71,7 +71,7 @@ static const struct periodic_element_t periodic_elements[] = {
     { 18,  3,  18, "Ar",  "Argon",         "39.948",      "1.7837",   "-189.2",   "-185.86",  'p',  9 , 9,    35},
     {  1,  4,  19, "K",   "Potassium",     "39.0983",     "0.862",    "63.65",    "765",      's',  1 , 10,   36},
     {  2,  4,  20, "Ca",  "Calcium",       "40.078",      "1.55",     "842",      "1503",     's',  2 , 11,   37},
-    {  3,  4,  21, "Sc",  "Scandium",      "44.955912",   "2.989",    "1539",     "2831",     'd',  3 , 88,   38},
+    {  3,  4,  21, "Sc",  "Scandium",      "44.955912",   "2.989",    "1539",     "2831",     'd',  3 , 38,   38},
     {  4,  4,  22, "Ti",  "Titanium",      "47.867",      "4.54",     "1666",     "3289",     'd',  3 , 103,  39},
     {  5,  4,  23, "V",   "Vanadium",      "50.9415",     "6.11",     "1917",     "3420",     'd',  3 , 104,  40},
     {  6,  4,  24, "Cr",  "Chromium",      "51.9961",     "7.20",     "1857",     "2682",     'd',  3 , 105,  41},
@@ -89,7 +89,7 @@ static const struct periodic_element_t periodic_elements[] = {
     { 18,  4,  36, "Kr",  "Krypton",       "83.798",      "3.733",    "-156.6",   "-153.35",  'p',  9 , 17,   53},
     {  1,  5,  37, "Rb",  "Rubidium",      "85.4678",     "1.532",    "38.89",    "688",      's',  1 , 18,   54},
     {  2,  5,  38, "Sr",  "Strontium",     "87.62",       "2.54",     "777",      "1414",     's',  2 , 19,   55},
-    {  3,  5,  39, "Y",   "Yttrium",       "88.90585",    "4.469",    "1520",     "3388",     'd',  3 , 20,   56},
+    {  3,  5,  39, "Y",   "Yttrium",       "88.90585",    "4.469",    "1520",     "3388",     'd',  3 , 20,   20},
     {  4,  5,  40, "Zr",  "Zirconium",     "91.224",      "6.506",    "1852",     "4361",     'd',  3 , 21,   71},
     {  5,  5,  41, "Nb",  "Niobium",       "92.90638",    "8.57",     "2477",     "4744",     'd',  3 , 22,   72},
     {  6,  5,  42, "Mo",  "Molybdenum",    "95.96",       "10.22",    "2623",     "4682",     'd',  3 , 23,   73},
@@ -176,6 +176,7 @@ static const struct periodic_element_t periodic_elements[] = {
 /* - - - PERIODIC TABLE VARIABLES - - - */
 #if LCD_DEPTH > 1
 static unsigned periodic_color_palette[12];
+static unsigned int theme_fg, theme_bg;
 #endif
 static unsigned int periodic_sel = 0;
 static int font_height = 0;
@@ -477,7 +478,7 @@ static void periodic_draw(void)
     e = periodic_elements[periodic_sel];
 
 #ifdef HAVE_LCD_COLOR
-    rb->lcd_set_foreground(PERIODIC_COLOR_WHITE);
+    rb->lcd_set_foreground(theme_fg);
 #endif
 
     /* display name and group up top */
@@ -604,10 +605,14 @@ enum plugin_status plugin_start(const void* parameter)
     periodic_sel = 0;
     periodic_makecols();
 
+    theme_fg=rb->lcd_get_foreground();
+    theme_bg=rb->lcd_get_background();
+
     struct font *pf = rb->font_get(FONT_UI);
     font_height = pf->height;
 
     while (1) {
+        rb->lcd_set_background(theme_bg);
         rb->lcd_clear_display();
         periodic_draw();
         rb->lcd_update();
