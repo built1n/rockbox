@@ -32,7 +32,9 @@
 
 /* keymappings */
 
-#if (CONFIG_KEYPAD == IPOD_4G_PAD)
+#if (CONFIG_KEYPAD == IPOD_1G2G_PAD) || \
+    (CONFIG_KEYPAD == IPOD_3G_PAD)   || \
+    (CONFIG_KEYPAD == IPOD_4G_PAD)
 #define WIKIVIEWER_MENU BUTTON_MENU
 #define WIKIVIEWER_SELECT BUTTON_SELECT
 #define WIKIVIEWER_STOP_RECORD (BUTTON_SELECT|BUTTON_REPEAT)
@@ -912,13 +914,19 @@ static struct linestate render(struct linestate cur, int norender,
                     switch (em[uc])
                     {
                     case 1:
+#ifdef HAVE_LCD_COLOR
                         rb->lcd_set_foreground(LCD_RGBPACK(255,0,0));
+#endif
                         break;
                     case 2:
+#ifdef HAVE_LCD_COLOR
                         rb->lcd_set_foreground(LCD_RGBPACK(0,255,0));
+#endif
                         break;
                     case 3:
+#ifdef HAVE_LCD_COLOR
                         rb->lcd_set_foreground(LCD_RGBPACK(0,0,255));
+#endif
                         break;
                     }
                     rb->lcd_drawpixel(uc,y+fontheight-1);
