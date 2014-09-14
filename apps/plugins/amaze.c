@@ -78,7 +78,7 @@ int maze_size;
 #define COLOR_GOAL      LCD_WHITE
 #define COLOR_COMPASS   LCD_WHITE
 #define COLOR_MARK      LCD_WHITE
-    e#define COLOR_PARA      LCD_DARKGRAY /* color side wall */
+#define COLOR_PARA      LCD_DARKGRAY /* color side wall */
 #define COLOR_PERP      LCD_LIGHTGRAY /* color wall perp */
 #else /* mono */
 #define COLOR_GROUND    LCD_BLACK
