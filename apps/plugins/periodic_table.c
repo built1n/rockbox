@@ -621,7 +621,36 @@ enum plugin_status plugin_start(const void* parameter)
             break;
         case PERIODIC_KEY_BACK:
         case PERIODIC_KEY_BACK_RPT:
-            if (periodic_sel > 0)
+            if(periodic_sel==103)
+            {
+                periodic_sel=87;
+            }
+            else if(periodic_sel==88)
+            {
+                periodic_sel=38;
+                break;
+            }
+            else if(periodic_sel==56)
+            {
+                periodic_sel=20;
+                break;
+            }
+            else if(periodic_sel==71)
+            {
+                periodic_sel=55;
+                break;
+            }
+            else if(periodic_sel==39)
+            {
+                periodic_sel=102;
+                break;
+            }
+            else if(periodic_sel==21)
+            {
+                periodic_sel=70;
+                break;
+            }
+            else if (periodic_sel > 0)
             {
                 periodic_sel--;
             }
@@ -632,7 +661,37 @@ enum plugin_status plugin_start(const void* parameter)
             break;
         case PERIODIC_KEY_FORWARD:
         case PERIODIC_KEY_FORWARD_RPT:
-            if (periodic_sel < ELEMENTS_COUNT - 1)
+            if(periodic_sel==102)
+            {
+                periodic_sel=39;
+                break;
+            }
+            else if(periodic_sel==87)
+            {
+                periodic_sel=103;
+                break;
+            }
+            else if(periodic_sel==70)
+            {
+                periodic_sel=21;
+                break;
+            }
+            else if(periodic_sel==55)
+            {
+                periodic_sel=71;
+                break;
+            }
+            else if(periodic_sel==38)
+            {
+                periodic_sel=88;
+                break;
+            }
+            else if(periodic_sel==20)
+            {
+                periodic_sel=56;
+                break;
+            }
+            else if (periodic_sel < ELEMENTS_COUNT - 1)
             {
                 periodic_sel++;
             }
