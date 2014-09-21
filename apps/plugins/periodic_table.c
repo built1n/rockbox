@@ -308,7 +308,7 @@ static void periodic_makecols(void)
     periodic_color_palette[i++] = LCD_RGBPACK(204,255,255); /* 9 noble gases */
     periodic_color_palette[i++] = LCD_RGBPACK(153,204,255); /* 10 lanthanides */
     periodic_color_palette[i++] = LCD_RGBPACK(204,153,255); /* 11 actinides */
-#else
+#elif LCD_DEPTH > 1
     int i = 0;
 
     periodic_color_palette[i++] = LCD_WHITE;       /* 0 hydrogen */
