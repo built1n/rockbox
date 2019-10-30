@@ -29,6 +29,7 @@
 #include "misc.h"
 #include "elf.h"
 #include <sys/stat.h>
+#include <openssl/md5.h>
 #include "crypt.h"
 #include "fwp.h"
 #include "keysig_search.h"
@@ -486,3 +487,4 @@ int main(int argc, char **argv)
 
     return ret;
 }
+

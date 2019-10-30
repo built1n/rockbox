@@ -28,41 +28,43 @@
 using namespace CryptoPP;
 namespace
 {
-    inline void dec_des_ecb(void *in, int size, void *out, uint8_t *key)
+    inline int dec_des_ecb(void *in, int size, void *out, uint8_t *key)
     {
         ECB_Mode< DES >::Decryption dec;
         if(size % 8)
-            abort(); /* size must be a multiple of 8 */
+            return 42;
         dec.SetKey(key, 8);
         dec.ProcessData((byte*)out, (byte*)in, size);
+        return 0;
     }
 
-    inline void enc_des_ecb(void *in, int size, void *out, uint8_t *key)
+    inline int enc_des_ecb(void *in, int size, void *out, uint8_t *key)
     {
         ECB_Mode< DES >::Encryption enc;
         if(size % 8)
-            abort(); /* size must be a multiple of 8 */
+            return 42;
         enc.SetKey(key, 8);
         enc.ProcessData((byte*)out, (byte*)in, size);
+        return 0;
     }
 }
 
-void mg_decrypt_fw(void *in, int size, void *out, uint8_t *key)
+int mg_decrypt_fw(void *in, int size, void *out, uint8_t *key)
 {
-    dec_des_ecb(in, size, out, key);
+    return dec_des_ecb(in, size, out, key);
 }
 
-void mg_encrypt_fw(void *in, int size, void *out, uint8_t *key)
+int mg_encrypt_fw(void *in, int size, void *out, uint8_t *key)
 {
-    enc_des_ecb(in, size, out, key);
+    return enc_des_ecb(in, size, out, key);
 }
 
-void mg_decrypt_pass(void *in, int size, void *out, uint8_t *key)
+int mg_decrypt_pass(void *in, int size, void *out, uint8_t *key)
 {
-    dec_des_ecb(in, size, out, key);
+    return dec_des_ecb(in, size, out, key);
 }
 
-void mg_encrypt_pass(void *in, int size, void *out, uint8_t *key)
+int mg_encrypt_pass(void *in, int size, void *out, uint8_t *key)
 {
-    enc_des_ecb(in, size, out, key);
+    return enc_des_ecb(in, size, out, key);
 }
